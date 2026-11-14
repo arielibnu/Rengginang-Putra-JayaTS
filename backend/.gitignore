@@ -1,0 +1,21 @@
+
+# Konfigurasi rahasia
+.env
+.env.*
+
+# File contoh konfigurasi boleh diunggah
+!.env.example
+
+# File hasil kompilasi
+*.exe
+*.exe~
+*.dll
+*.so
+
+# File pengujian sementara
+*.log
+*.tmp
+
+# Folder editor
+.vscode/
+.idea/

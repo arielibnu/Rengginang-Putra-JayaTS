@@ -1,0 +1,452 @@
+/* ==========================================================================
+   CSS PPL-01: LOGIN OWNER & DASHBOARD ADMIN
+   Tema: Earthy Cream & Brown (Sesuai Figma)
+   ========================================================================== */
+
+/* Halaman Login Owner */
+.login-page {
+  min-height: 100vh;
+  background-color: #F8F3EA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.login-card {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 2.75rem 2.25rem 2.25rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 4px 20px rgba(67, 40, 28, 0.06);
+  text-align: center;
+}
+
+.login-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background-color: #43281C;
+  color: #FFFFFF;
+  border-radius: 14px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+}
+
+.login-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.35rem;
+}
+
+.login-subtitle {
+  font-size: 0.925rem;
+  color: #8E7D73;
+  margin-bottom: 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: left;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #43281C;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+  border: 1px solid #E5DCD2;
+  border-radius: 10px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #43281C;
+}
+
+.btn-submit-login {
+  background-color: #43281C;
+  color: #FFFFFF;
+  padding: 0.9rem;
+  border-radius: 10px;
+  font-size: 0.975rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-submit-login:hover {
+  background-color: #2F1B12;
+}
+
+.btn-back-home {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: #8E7D73;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.btn-back-home:hover {
+  color: #43281C;
+}
+
+.login-footnote {
+  margin-top: 1.5rem;
+  font-size: 0.8125rem;
+  color: #8E7D73;
+  text-align: center;
+}
+
+.login-error-alert {
+  background-color: #FDF2F0;
+  border: 1px solid #F5C6CB;
+  color: #A92631;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.login-hint-box {
+  background-color: #F8F3EA;
+  border: 1px dashed #DDD3C7;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.8rem;
+  color: #66564C;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Dashboard Owner Layout
+   ========================================================================== */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #FFFFFF;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  width: 250px;
+  background-color: #FAF6EF;
+  border-right: 1px solid #EFE8DF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.75rem 1.25rem;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  background-color: #43281C;
+  color: #FFFFFF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.sidebar-brand-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #43281C;
+  line-height: 1.1;
+}
+
+.sidebar-brand-sub {
+  font-size: 0.75rem;
+  color: #8E7D73;
+}
+
+.sidebar-menu {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: #66564C;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.sidebar-item:hover {
+  color: #43281C;
+  background-color: #F0EAE1;
+}
+
+.sidebar-item.active {
+  background-color: #FFFFFF;
+  color: #43281C;
+  box-shadow: 0 2px 8px rgba(67, 40, 28, 0.05);
+}
+
+.sidebar-footer {
+  border-top: 1px solid #EFE8DF;
+  padding-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sidebar-footer-link {
+  font-size: 0.875rem;
+  color: #8E7D73;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.25rem 0;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.sidebar-footer-link:hover {
+  color: #43281C;
+}
+
+/* Main Content */
+.admin-main {
+  flex-grow: 1;
+  padding: 2rem 2.5rem;
+  background-color: #FFFFFF;
+  overflow-y: auto;
+}
+
+.admin-breadcrumb {
+  font-size: 0.825rem;
+  color: #8E7D73;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #EFE8DF;
+  margin-bottom: 2rem;
+}
+
+.admin-header {
+  margin-bottom: 2rem;
+}
+
+.admin-page-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.25rem;
+}
+
+.admin-page-subtitle {
+  font-size: 0.95rem;
+  color: #8E7D73;
+}
+
+/* 3 Metric Cards */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.metric-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #66564C;
+  margin-bottom: 0.75rem;
+}
+
+.metric-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #43281C;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.metric-sub {
+  font-size: 0.8125rem;
+  color: #8E7D73;
+}
+
+/* Attention Banner */
+.alert-stock-banner {
+  background-color: #FAF1EA;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.alert-circle-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #EEDCCE;
+  color: #66564C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.alert-title {
+  font-size: 0.975rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.15rem;
+}
+
+.alert-desc {
+  font-size: 0.875rem;
+  color: #66564C;
+}
+
+/* Varian Produk Grid */
+.products-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.25rem;
+}
+
+.section-h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #43281C;
+}
+
+.link-all {
+  font-size: 0.875rem;
+  color: #8E7D73;
+  text-decoration: none;
+}
+
+.link-all:hover {
+  color: #43281C;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.product-admin-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.product-thumb {
+  width: 58px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.product-meta-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.15rem;
+}
+
+.product-meta-weight {
+  font-size: 0.8125rem;
+  color: #8E7D73;
+  margin-bottom: 0.35rem;
+}
+
+.product-meta-stock {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #2D6A4F;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #EFE8DF;
+  }
+  .metrics-row {
+    grid-template-columns: 1fr;
+  }
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-main {
+    padding: 1.25rem;
+  }
+}
+
