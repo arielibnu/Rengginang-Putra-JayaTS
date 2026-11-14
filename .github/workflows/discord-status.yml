@@ -1,0 +1,39 @@
+name: Notifikasi Status ke Discord
+
+on:
+  issues:
+    types: [labeled, assigned, closed, reopened]
+
+jobs:
+  discord-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kirim Notifikasi ke Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          EVENT_ACTION="${{ github.event.action }}"
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_URL="${{ github.event.issue.html_url }}"
+          SENDER="${{ github.actor }}"
+          
+          if [ "$EVENT_ACTION" == "labeled" ]; then
+            LABEL_NAME="${{ github.event.label.name }}"
+            MESSAGE="🏷️ **Status Berubah:** Label **$LABEL_NAME** ditambahkan ke issue [$ISSUE_TITLE]($ISSUE_URL) oleh **$SENDER**"
+            COLOR=3447003 # Biru
+          elif [ "$EVENT_ACTION" == "closed" ]; then
+            MESSAGE="✅ **DONE / SELESAI:** Issue [$ISSUE_TITLE]($ISSUE_URL) telah diselesaikan oleh **$SENDER**"
+            COLOR=3066993 # Hijau
+          elif [ "$EVENT_ACTION" == "assigned" ]; then
+            ASSIGNEE="${{ github.event.assignee.login }}"
+            MESSAGE="📌 **Tugas Dikerjakan:** Issue [$ISSUE_TITLE]($ISSUE_URL) ditugaskan kepada **@$ASSIGNEE** oleh **$SENDER**"
+            COLOR=15105570 # Oranye
+          else
+            MESSAGE="🔄 **Update Issue:** [$ISSUE_TITLE]($ISSUE_URL) mengalami perubahan ($EVENT_ACTION) oleh **$SENDER**"
+            COLOR=9807270 # Abu-abu
+          fi
+
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"embeds\": [{\"description\": \"$MESSAGE\", \"color\": $COLOR}]}" \
+               $DISCORD_WEBHOOK
