@@ -1,0 +1,473 @@
+
+PANDUAN PENGUJIAN BACKEND AUTENTIKASI PEMILIK
+WEBSITE RENGGINANG PUTRA JAYA
+
+------------------------------------------------------------
+
+Proyek          : Website Rengginang Putra Jaya
+Product Backlog : PPL-01 - Login Owner dan Hak Akses Admin
+WBS             : 1.1.1.2
+Sprint          : Sprint 1
+Bagian          : Backend (BE)
+Hasil Pekerjaan : API Auth dan Middleware Sesi Admin
+
+------------------------------------------------------------
+
+DESKRIPSI TUGAS
+
+Mengimplementasikan login dan logout Owner, hashing kata
+sandi menggunakan bcrypt, serta pengelolaan sesi/token
+untuk mengatur akses pemilik.
+
+Seluruh pengujian dilakukan menggunakan terminal
+Visual Studio Code.
+
+============================================================
+1. MENJALANKAN BACKEND
+============================================================
+
+TUJUAN
+
+Memastikan backend Golang berjalan dan terhubung dengan
+database MySQL.
+
+LANGKAH PENGUJIAN
+
+1. Aktifkan MySQL melalui XAMPP.
+2. Buka folder 1.1.1.2 di Visual Studio Code.
+3. Pilih menu Terminal, kemudian New Terminal.
+4. Pada terminal pertama (CMD), jalankan kedua perintah
+   berikut secara berurutan.
+
+------------------ KODE TERMINAL 1 -------------------------
+
+go build .
+go run .
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+Berhasil terhubung ke MySQL!
+Server berjalan di http://localhost:8080
+
+PENJELASAN
+
+Perintah go build digunakan untuk memeriksa apakah program
+Golang dapat dikompilasi tanpa kesalahan.
+
+Perintah go run digunakan untuk menjalankan backend.
+
+PENTING
+
+Biarkan terminal pertama tetap aktif setelah server berhasil
+dijalankan. Jangan menjalankan perintah pengujian pada
+terminal pertama.
+
+
+============================================================
+2. PENGUJIAN KONEKSI API
+============================================================
+
+TUJUAN
+
+Memastikan backend menerima dan merespons permintaan API.
+
+LANGKAH PENGUJIAN
+
+1. Setelah server aktif, buka terminal kedua melalui menu
+   Terminal, kemudian New Terminal.
+2. Pada terminal kedua, masukkan perintah berikut.
+
+-------------- KODE MASUK POWERSHELL -----------------------
+
+powershell.exe
+
+-------------------- AKHIR KODE ----------------------------
+
+3. Tekan Enter.
+4. Pastikan terminal berubah dari CMD menjadi PowerShell
+   dengan awalan PS.
+5. Jalankan perintah pengujian berikut.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/kesehatan" -Method GET
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+status : ok
+
+PENJELASAN
+
+Server berhasil menerima permintaan dari terminal dan
+memberikan respons API.
+
+PENTING
+
+Seluruh pengujian nomor 3 sampai nomor 10 dilakukan pada
+terminal kedua yang sudah berada dalam mode PowerShell.
+
+Tidak perlu mengetik powershell.exe kembali selama terminal
+kedua masih menggunakan PowerShell.
+
+
+============================================================
+3. PENGUJIAN HASHING KATA SANDI BCRYPT
+============================================================
+
+TUJUAN
+
+Membuktikan kata sandi Owner disimpan dalam bentuk hash
+bcrypt, bukan teks biasa.
+
+LANGKAH PENGUJIAN
+
+Jalankan kedua perintah berikut secara berurutan
+pada terminal kedua.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+$perintahSQL = "SELECT nama_pengguna, LEFT(kata_sandi_hash, 7) AS awalan_hash FROM akun_pemilik;"
+
+& "C:\xampp\mysql\bin\mysql.exe" -u root -D rengginang_putra_jaya -e $perintahSQL
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+nama_pengguna    awalan_hash
+owner1           $2a$10$
+
+Awalan hash dapat berbeda sesuai format bcrypt.
+
+PENJELASAN
+
+Kata sandi Owner disimpan dalam bentuk hash bcrypt.
+Backend menggunakan bcrypt untuk memeriksa kata sandi
+ketika proses login berlangsung.
+
+CATATAN
+
+Perintah menggunakan lokasi MySQL XAMPP standar dan akun
+root tanpa password. Jika konfigurasi MySQL berbeda,
+sesuaikan perintahnya.
+
+
+============================================================
+4. PENGUJIAN LOGIN OWNER
+============================================================
+
+TUJUAN
+
+Memastikan Owner dapat melakukan login menggunakan
+nama pengguna dan kata sandi yang benar.
+
+LANGKAH PENGUJIAN
+
+1. Tetap gunakan terminal PowerShell kedua.
+2. Salin dan jalankan seluruh kode berikut.
+3. Masukkan kata sandi akun owner1 ketika jendela
+   kredensial muncul.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+$kredensial = Get-Credential -UserName "owner1" -Message "Pengujian Login Owner"
+
+$data = @{
+    nama_pengguna = $kredensial.UserName
+    kata_sandi = $kredensial.GetNetworkCredential().Password
+} | ConvertTo-Json
+
+$sesi = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+
+$header = @{
+    Origin = "http://localhost:5173"
+}
+
+Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/pemilik/masuk" -Method POST -ContentType "application/json" -Headers $header -Body $data -WebSession $sesi
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+Login pemilik berhasil
+
+PENJELASAN
+
+Backend memeriksa akun Owner dalam database dan
+memverifikasi kata sandi menggunakan bcrypt.
+
+Apabila kata sandi benar, login berhasil dan backend
+membuat sesi autentikasi.
+
+
+============================================================
+5. PENGUJIAN TOKEN DAN SESI LOGIN
+============================================================
+
+TUJUAN
+
+Memastikan token sesi dibuat setelah login berhasil
+dan hash token tersimpan dalam database.
+
+LANGKAH PENGUJIAN
+
+Jalankan perintah untuk memeriksa cookie sesi.
+
+---------------- KODE 1 - COOKIE SESI ----------------------
+
+$sesi.Cookies.GetCookies("http://127.0.0.1:8080") | Select-Object Name, HttpOnly, Expires
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+Terminal menampilkan informasi cookie sesi dengan
+nilai HttpOnly True.
+
+Selanjutnya, jalankan perintah pemeriksaan database.
+
+--------------- KODE 2 - DATABASE SESI ---------------------
+
+$perintahSQL = "SELECT id_sesi, id_pemilik, LEFT(token_hash, 12) AS awalan_token_hash, kedaluwarsa_pada FROM sesi_pemilik ORDER BY id_sesi DESC LIMIT 5;"
+
+& "C:\xampp\mysql\bin\mysql.exe" -u root -D rengginang_putra_jaya -e $perintahSQL
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+Terminal menampilkan ID sesi, ID pemilik, sebagian
+hash token, dan waktu kedaluwarsa sesi.
+
+PENJELASAN
+
+Backend membuat token sesi acak setelah login berhasil.
+
+Token dikirim melalui cookie HttpOnly, sedangkan hash
+token disimpan dalam tabel sesi_pemilik pada database.
+
+
+============================================================
+6. PENGUJIAN MIDDLEWARE SESI ADMIN
+============================================================
+
+TUJUAN
+
+Memastikan Owner yang sudah login dapat mengakses
+endpoint yang dilindungi middleware.
+
+LANGKAH PENGUJIAN
+
+Jalankan perintah berikut di terminal kedua.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/pemilik/profil" -Method GET -WebSession $sesi
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+Sesi pemilik valid
+
+PENJELASAN
+
+Middleware memeriksa sesi autentikasi pengguna.
+
+Jika sesi ditemukan dan belum kedaluwarsa, Owner
+diizinkan mengakses endpoint profil.
+
+
+============================================================
+7. PENGUJIAN MIDDLEWARE TANPA LOGIN
+============================================================
+
+TUJUAN
+
+Membuktikan middleware menolak akses apabila pengguna
+tidak memiliki sesi login.
+
+LANGKAH PENGUJIAN
+
+Jalankan perintah berikut di terminal kedua.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+try {
+    Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/pemilik/profil" -Method GET -ErrorAction Stop
+} catch {
+    Write-Host "HTTP Status:" ([int]$_.Exception.Response.StatusCode)
+}
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+HTTP Status: 401
+
+PENJELASAN
+
+HTTP 401 menunjukkan permintaan ditolak karena
+pengguna belum terautentikasi.
+
+
+============================================================
+8. PENGUJIAN LOGOUT OWNER
+============================================================
+
+TUJUAN
+
+Memastikan Owner dapat mengakhiri sesi login
+melalui API logout.
+
+LANGKAH PENGUJIAN
+
+Jalankan perintah berikut menggunakan sesi yang
+dibuat pada pengujian nomor 4.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/pemilik/keluar" -Method POST -Headers $header -WebSession $sesi
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+Logout pemilik berhasil
+
+PENJELASAN
+
+Backend menghapus sesi login dari database dan
+mengirim instruksi penghapusan cookie sesi.
+
+
+============================================================
+9. PENGUJIAN AKSES SETELAH LOGOUT
+============================================================
+
+TUJUAN
+
+Memastikan sesi yang sudah diakhiri tidak dapat
+digunakan kembali.
+
+LANGKAH PENGUJIAN
+
+Jalankan perintah berikut pada terminal kedua.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+try {
+    Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/pemilik/profil" -Method GET -WebSession $sesi -ErrorAction Stop
+} catch {
+    Write-Host "HTTP Status:" ([int]$_.Exception.Response.StatusCode)
+}
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+HTTP Status: 401
+
+PENJELASAN
+
+Middleware menolak akses karena sesi Owner sudah
+dihapus melalui proses logout.
+
+
+============================================================
+10. PENGUJIAN LOGIN DENGAN KATA SANDI SALAH
+============================================================
+
+TUJUAN
+
+Memastikan backend menolak login menggunakan
+kata sandi yang tidak sesuai.
+
+LANGKAH PENGUJIAN
+
+Jalankan perintah berikut di terminal kedua.
+
+------------------ KODE TERMINAL 2 -------------------------
+
+try {
+    Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/pemilik/masuk" -Method POST -ContentType "application/json" -Headers $header -Body '{"nama_pengguna":"owner1","kata_sandi":"password-salah-123"}' -ErrorAction Stop
+} catch {
+    Write-Host "HTTP Status:" ([int]$_.Exception.Response.StatusCode)
+}
+
+-------------------- AKHIR KODE ----------------------------
+
+HASIL YANG DIHARAPKAN
+
+HTTP Status: 401
+
+PENJELASAN
+
+Backend menolak permintaan login karena kata sandi
+tidak cocok dengan hash bcrypt dalam database.
+
+
+============================================================
+11. RINGKASAN PENGUJIAN
+============================================================
+
+Pengujian 1
+Menjalankan backend
+Hasil: Server aktif
+
+Pengujian 2
+Koneksi API
+Hasil: Status ok
+
+Pengujian 3
+Hashing bcrypt
+Hasil: Hash tersimpan
+
+Pengujian 4
+Login Owner
+Hasil: Berhasil
+
+Pengujian 5
+Token dan sesi login
+Hasil: Cookie dan sesi tersedia
+
+Pengujian 6
+Middleware dengan login
+Hasil: Akses diizinkan
+
+Pengujian 7
+Middleware tanpa login
+Hasil: HTTP 401
+
+Pengujian 8
+Logout Owner
+Hasil: Berhasil
+
+Pengujian 9
+Akses setelah logout
+Hasil: HTTP 401
+
+Pengujian 10
+Login dengan kata sandi salah
+Hasil: HTTP 401
+
+
+============================================================
+12. KESIMPULAN
+============================================================
+
+Backend autentikasi pemilik Website Rengginang Putra Jaya
+telah diimplementasikan menggunakan Golang dan MySQL.
+
+Pengujian dilakukan untuk membuktikan bahwa sistem
+dapat menjalankan login, logout, hashing kata sandi
+menggunakan bcrypt, pembuatan dan penghapusan token
+sesi, serta validasi akses melalui middleware autentikasi.
+
+Seluruh fungsi utama WBS 1.1.1.2, yaitu API Auth dan
+Middleware Sesi Admin, dapat didemonstrasikan melalui
+terminal Visual Studio Code tanpa antarmuka frontend.
