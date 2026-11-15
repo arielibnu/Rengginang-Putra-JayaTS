@@ -18,6 +18,9 @@ import LoginInfoModal from './components/LoginInfoModal';
 import LoginOwner from './pages/LoginOwner';
 import OwnerDashboard from './pages/OwnerDashboard';
 
+// PPL-03: Pengelolaan Data Produk dan Varian
+import KelolaProduk from './pages/KelolaProduk';
+
 import './styles/home.css';
 
 function AppContent() {
@@ -26,18 +29,26 @@ function AppContent() {
 
   const location = useLocation();
 
-  // Login dan Dashboard memiliki tampilan tersendiri
+  // Login, Dashboard, dan Kelola Produk memiliki layout sendiri
   const isOwnerPage =
     location.pathname === '/login' ||
-    location.pathname === '/admin/dashboard';
+    location.pathname === '/admin/dashboard' ||
+    location.pathname === '/admin/produk';
 
   if (isOwnerPage) {
     return (
       <Routes>
         <Route path="/login" element={<LoginOwner />} />
+
         <Route
           path="/admin/dashboard"
           element={<OwnerDashboard />}
+        />
+
+        {/* PPL-03: Halaman Kelola Produk dan Varian */}
+        <Route
+          path="/admin/produk"
+          element={<KelolaProduk />}
         />
       </Routes>
     );

@@ -26,10 +26,30 @@ func MiddlewareCORS(berikutnya http.Handler) http.Handler {
 				return
 			}
 
-			w.Header().Set("Access-Control-Allow-Origin", asalDiizinkan)
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			// Mengizinkan frontend yang sudah ditentukan.
+			w.Header().Set(
+				"Access-Control-Allow-Origin",
+				asalDiizinkan,
+			)
+
+			// Mengizinkan cookie sesi Owner.
+			w.Header().Set(
+				"Access-Control-Allow-Credentials",
+				"true",
+			)
+
+			// Mengizinkan seluruh metode API CRUD.
+			w.Header().Set(
+				"Access-Control-Allow-Methods",
+				"GET, POST, PUT, DELETE, OPTIONS",
+			)
+
+			// Mengizinkan header JSON dari frontend.
+			w.Header().Set(
+				"Access-Control-Allow-Headers",
+				"Content-Type",
+			)
+
 			w.Header().Add("Vary", "Origin")
 		}
 
