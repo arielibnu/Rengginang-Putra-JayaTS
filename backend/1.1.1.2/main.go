@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -8,18 +9,19 @@ import (
 	"strings"
 
 	admin "rengginang-putra-jaya/auth/1.1.1.3"
+	pelanggan "rengginang-putra-jaya/auth/1.1.2.2"
 	produkapi "rengginang-putra-jaya/auth/1.1.3.2"
 	snapshot "rengginang-putra-jaya/auth/1.1.3.4"
 )
 
 func main() {
-	// Menghubungkan Golang ke database MySQL.
+	// Koneksi MySQL
 	if err := hubungkanDatabase(); err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	// Endpoint untuk memeriksa kondisi server.
+	// Cek kondisi server
 	http.HandleFunc("/api/kesehatan", func(
 		w http.ResponseWriter,
 		r *http.Request,
@@ -47,11 +49,9 @@ func main() {
 	})
 
 	// ==========================================
-	// WBS 1.1.1.2 - LOGIN OWNER
+	// PPL-01: LOGIN OWNER
 	// ==========================================
 
-	// API login dengan pembatasan percobaan
-	// dan pemeriksaan asal permintaan.
 	http.Handle(
 		"/api/pemilik/masuk",
 		middlewarePembatasLogin(
@@ -61,7 +61,6 @@ func main() {
 		),
 	)
 
-	// API logout dengan pemeriksaan asal permintaan.
 	http.Handle(
 		"/api/pemilik/keluar",
 		middlewarePerlindunganCSRF(
@@ -69,7 +68,6 @@ func main() {
 		),
 	)
 
-	// Endpoint profil hanya dapat diakses setelah login.
 	http.Handle(
 		"/api/pemilik/profil",
 		middlewareSesiPemilik(
@@ -114,10 +112,9 @@ func main() {
 	)
 
 	// ==========================================
-	// WBS 1.1.1.3 - HAK AKSES ADMIN
+	// PPL-01: HAK AKSES ADMIN
 	// ==========================================
 
-	// Endpoint beranda admin dilindungi middleware sesi Owner.
 	http.Handle(
 		"/api/admin/beranda",
 		middlewareSesiPemilik(
@@ -126,10 +123,51 @@ func main() {
 	)
 
 	// ==========================================
-	// WBS 1.1.3.2 - CRUD PRODUK DAN VARIAN
+	// PPL-02: REGISTRASI DAN LOGIN PELANGGAN
+	// WBS 1.1.2.2
 	// ==========================================
 
-	// Menggunakan koneksi MySQL dari backend Login Owner.
+	handlerPelanggan := &pelanggan.Handler{
+		DB: db,
+	}
+
+	// POST - Daftar pelanggan
+	http.Handle(
+		"/api/pelanggan/daftar",
+		middlewarePerlindunganCSRF(
+			http.HandlerFunc(handlerPelanggan.Registrasi),
+		),
+	)
+
+	// POST - Login pelanggan
+	http.Handle(
+		"/api/pelanggan/masuk",
+		middlewarePembatasLogin(
+			middlewarePerlindunganCSRF(
+				http.HandlerFunc(handlerPelanggan.Login),
+			),
+		),
+	)
+
+	// GET - Profil pelanggan
+	http.Handle(
+		"/api/pelanggan/profil",
+		http.HandlerFunc(handlerPelanggan.Profil),
+	)
+
+	// POST - Logout pelanggan
+	http.Handle(
+		"/api/pelanggan/keluar",
+		middlewarePerlindunganCSRF(
+			http.HandlerFunc(handlerPelanggan.Logout),
+		),
+	)
+
+	// ==========================================
+	// PPL-03: CRUD PRODUK DAN VARIAN
+	// WBS 1.1.3.2
+	// ==========================================
+
 	handlerProduk := &produkapi.HandlerProduk{
 		DB: db,
 	}
@@ -138,8 +176,7 @@ func main() {
 		DB: db,
 	}
 
-	// GET  /api/admin/produk
-	// POST /api/admin/produk
+	// GET / POST produk
 	http.Handle(
 		"/api/admin/produk",
 		middlewareSesiPemilik(
@@ -149,12 +186,8 @@ func main() {
 		),
 	)
 
-	// GET    /api/admin/produk/{id}
-	// PUT    /api/admin/produk/{id}
-	// DELETE /api/admin/produk/{id}
-	//
-	// GET  /api/admin/produk/{id}/varian
-	// POST /api/admin/produk/{id}/varian
+	// GET / PUT / DELETE produk
+	// GET / POST varian berdasarkan produk
 	http.Handle(
 		"/api/admin/produk/",
 		middlewareSesiPemilik(
@@ -173,7 +206,6 @@ func main() {
 						"/",
 					)
 
-					// Jika URL mengarah ke varian produk.
 					if len(bagian) == 2 &&
 						bagian[1] == "varian" {
 
@@ -202,15 +234,13 @@ func main() {
 						return
 					}
 
-					// Selain URL varian, proses sebagai CRUD produk.
 					handlerProduk.ServeHTTP(w, r)
 				}),
 			),
 		),
 	)
 
-	// PUT    /api/admin/varian/{id}
-	// DELETE /api/admin/varian/{id}
+	// PUT / DELETE varian
 	http.Handle(
 		"/api/admin/varian/",
 		middlewareSesiPemilik(
@@ -221,16 +251,15 @@ func main() {
 	)
 
 	// ==========================================
-	// WBS 1.1.3.4 - SNAPSHOT HARGA TRANSAKSI
+	// PPL-03: SNAPSHOT HARGA TRANSAKSI
+	// WBS 1.1.3.4
 	// ==========================================
 
-	// Menggunakan koneksi MySQL yang sama.
 	handlerSnapshot := &snapshot.Handler{
 		DB: db,
 	}
 
-	// POST /api/admin/transaksi
-	// Membuat transaksi dan menyimpan snapshot harga.
+	// POST transaksi
 	http.Handle(
 		"/api/admin/transaksi",
 		middlewareSesiPemilik(
@@ -240,8 +269,7 @@ func main() {
 		),
 	)
 
-	// GET /api/admin/transaksi/{id}
-	// Membaca riwayat transaksi beserta harga snapshot.
+	// GET riwayat transaksi
 	http.Handle(
 		"/api/admin/transaksi/",
 		middlewareSesiPemilik(
@@ -252,19 +280,19 @@ func main() {
 	)
 
 	// ==========================================
-	// KONFIGURASI DAN SERVER UTAMA
+	// SERVER UTAMA
 	// ==========================================
 
-	// Mengambil port dari konfigurasi .env.
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	// Mengaktifkan middleware CORS untuk komunikasi frontend.
-	penanganAPI := admin.MiddlewareCORS(http.DefaultServeMux)
+	// CORS untuk frontend React
+	penanganAPI := admin.MiddlewareCORS(
+		http.DefaultServeMux,
+	)
 
-	// Menjalankan server backend.
 	log.Println(
 		"Server berjalan di http://localhost:" + port,
 	)
