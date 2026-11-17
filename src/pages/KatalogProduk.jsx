@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { X, MessageSquare, MapPin } from 'lucide-react';
+import { X, MessageSquare, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
 
-// Data 4 varian rengginang sesuai mockup resmi Figma
+// Data 4 varian rengginang sesuai mockup resmi Figma PPL-08 & PPL-09
 const DAFTAR_PRODUK = [
   {
     id: 'udang',
     nama: 'Rengginang Udang',
     varian: 'Udang',
     berat: 'Berat bersih 450 gr',
-    beratGram: '450 gram',
+    beratBersih: '450 gram',
     harga: 'Rp28.000',
     hargaAngka: 28000,
-    ketersediaan: 'Tersedia • contoh',
+    stok: 12,
+    stokText: '12 bungkus',
+    statusKetersediaan: 'TERSEDIA',
     kategori: 'Rengginang tradisional',
-    deskripsi: 'Varian rasa udang dalam kemasan 450 gram.',
+    deskripsi: 'Rengginang tradisional • kemasan 450 gram',
     gambar: '/images/products/rengginang-udang.jpg',
     gambarDetail: '/images/products/rengginang-udang-vertical.jpg'
   },
@@ -23,12 +25,14 @@ const DAFTAR_PRODUK = [
     nama: 'Rengginang Bawang',
     varian: 'Bawang',
     berat: 'Berat bersih 450 gr',
-    beratGram: '450 gram',
+    beratBersih: '450 gram',
     harga: 'Rp28.000',
     hargaAngka: 28000,
-    ketersediaan: 'Tersedia • contoh',
+    stok: 38,
+    stokText: '38 bungkus',
+    statusKetersediaan: 'TERSEDIA',
     kategori: 'Rengginang tradisional',
-    deskripsi: 'Varian rasa bawang dalam kemasan 450 gram.',
+    deskripsi: 'Rengginang tradisional • kemasan 450 gram',
     gambar: '/images/products/rengginang-bawang.jpg',
     gambarDetail: '/images/products/rengginang-bawang-vertical.jpg'
   },
@@ -37,12 +41,14 @@ const DAFTAR_PRODUK = [
     nama: 'Rengginang Cumi',
     varian: 'Cumi',
     berat: 'Berat bersih 450 gr',
-    beratGram: '450 gram',
+    beratBersih: '450 gram',
     harga: 'Rp28.000',
     hargaAngka: 28000,
-    ketersediaan: 'Tersedia • contoh',
+    stok: 0,
+    stokText: '0 bungkus',
+    statusKetersediaan: 'STOK HABIS',
     kategori: 'Rengginang tradisional',
-    deskripsi: 'Varian rasa cumi dalam kemasan 450 gram.',
+    deskripsi: 'Rengginang tradisional • kemasan 450 gram',
     gambar: '/images/products/rengginang-cumi.jpg',
     gambarDetail: '/images/products/rengginang-cumi-vertical.jpg'
   },
@@ -51,12 +57,14 @@ const DAFTAR_PRODUK = [
     nama: 'Rengginang Terasi',
     varian: 'Terasi',
     berat: 'Berat bersih 450 gr',
-    beratGram: '450 gram',
+    beratBersih: '450 gram',
     harga: 'Rp28.000',
     hargaAngka: 28000,
-    ketersediaan: 'Tersedia • contoh',
+    stok: 38,
+    stokText: '38 bungkus',
+    statusKetersediaan: 'TERSEDIA',
     kategori: 'Rengginang tradisional',
-    deskripsi: 'Varian rasa terasi dalam kemasan 450 gram.',
+    deskripsi: 'Rengginang tradisional • kemasan 450 gram',
     gambar: '/images/products/rengginang-terasi.jpg',
     gambarDetail: '/images/products/rengginang-terasi-vertical.jpg'
   }
@@ -70,11 +78,14 @@ export default function KatalogProduk() {
   // State untuk produk yang sedang dilihat detailnya (null = tampilkan katalog grid)
   const [produkDipilih, setProdukDipilih] = useState(null);
 
-  // Modal kontak / informasi usaha saat tombol beli atau hubungi penjual diklik
+  // State galeri foto produk yang sedang aktif (0 = kemasan utama, 1 = label, 2 = detail isi)
+  const [indexFotoAktif, setIndexFotoAktif] = useState(0);
+
+  // Modal kontak / informasi pemesanan
   const [bukaModalKontak, setBukaModalKontak] = useState(false);
   const [judulModal, setJudulModal] = useState('Hubungi Penjual');
 
-  // Deteksi jika URL membawa id produk (misal: /katalog?id=bawang atau /produk/:id)
+  // Deteksi jika URL membawa id produk (misal: /katalog?id=cumi atau /produk/udang)
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const idDariQuery = searchParams.get('id') || params.id;
@@ -85,57 +96,67 @@ export default function KatalogProduk() {
       );
       if (produkCocok) {
         setProdukDipilih(produkCocok);
+        setIndexFotoAktif(0);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
 
-    // Jika tidak ada parameter spesifik dan navigasi ke root katalog
     if (!idDariQuery && !location.hash) {
       setProdukDipilih(null);
     }
   }, [location.search, params.id]);
 
-  // Handler untuk membuka halaman detail produk (Gambar 2 Figma)
+  // Handler saat memilih varian dari grid katalog
   const handleBukaDetail = (produk) => {
     setProdukDipilih(produk);
+    setIndexFotoAktif(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handler kembali ke tampilan semua katalog (Gambar 1 Figma)
+  // Handler kembali ke tampilan grid katalog
   const handleKembaliKeKatalog = () => {
     setProdukDipilih(null);
+    navigate('/katalog');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handler tombol Beli atau Hubungi Penjual
+  // Handler ganti varian rasa langsung pada halaman detail (Pilih Varian Rasa)
+  const handleGantiVarian = (varianId) => {
+    const target = DAFTAR_PRODUK.find((p) => p.id === varianId);
+    if (target) {
+      setProdukDipilih(target);
+      setIndexFotoAktif(0);
+    }
+  };
+
+  // Handler tombol Beli Produk
   const handleBeli = (produk) => {
     setJudulModal(`Pesan ${produk.nama}`);
     setBukaModalKontak(true);
   };
 
-  const handleHubungiPenjual = () => {
-    setJudulModal('Hubungi Penjual');
-    setBukaModalKontak(true);
-  };
+  // Tentukan apakah produk yang sedang dilihat stoknya habis
+  const apakahStokHabis = produkDipilih && (produkDipilih.stok === 0 || produkDipilih.statusKetersediaan === 'STOK HABIS');
 
-  const handleLihatInfoUsaha = () => {
-    setJudulModal('Informasi Usaha UMKM');
-    setBukaModalKontak(true);
-  };
+  // Daftar galeri foto untuk varian yang dipilih
+  const getDaftarGaleri = (p) => [
+    { label: 'Kemasan', src: p.gambarDetail || p.gambar },
+    { label: 'Label', src: p.gambar },
+    { label: 'Detail isi', src: '/images/products/rengginang-all-hero.jpg' }
+  ];
 
   return (
     <div style={{ backgroundColor: '#FAF8F5', minHeight: '85vh', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '2rem 1.5rem' }}>
 
         {/* ======================================================================
-            TAMPILAN 1: DETAIL PRODUK (Sesuai Gambar Figma Kedua)
-            Aktif jika ada varian produk yang dipilih
+            TAMPILAN DETAIL PRODUK (PPL-09: Sesuai Gambar Mockup Figma)
             ====================================================================== */}
         {produkDipilih ? (
           <div>
-            {/* Breadcrumb Navigasi */}
-            <nav style={{ fontSize: '0.875rem', color: '#8E7D73', marginBottom: '2.5rem' }}>
+            {/* Breadcrumb Sesuai Figma */}
+            <nav style={{ fontSize: '0.875rem', color: '#8E7D73', marginBottom: '1.75rem' }}>
               <Link
                 to="/"
                 style={{ color: '#8E7D73', textDecoration: 'none', transition: 'color 0.2s' }}
@@ -159,213 +180,398 @@ export default function KatalogProduk() {
                 Produk
               </span>
               <span style={{ margin: '0 0.5rem' }}>/</span>
-              <span style={{ color: '#43281C', fontWeight: 600 }}>
+              <span style={{ color: '#8E7D73' }}>
                 {produkDipilih.nama}
               </span>
             </nav>
 
-            {/* Layout 2 Kolom: Gambar Produk Kiri & Informasi Detail Kanan */}
+            {/* Header Detail Produk Sesuai Figma */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h1
+                style={{
+                  fontSize: '2rem',
+                  fontWeight: 800,
+                  color: '#43281C',
+                  marginBottom: '0.35rem',
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                Detail Produk
+              </h1>
+              <p style={{ fontSize: '0.95rem', color: '#8E7D73' }}>
+                Informasi varian, harga, berat, dan ketersediaan produk.
+              </p>
+            </div>
+
+            {/* Layout 2 Kolom: Wadah Foto Kiri & Kartu Informasi Detail Kanan */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-                gap: '3.5rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+                gap: '2.5rem',
                 alignItems: 'start'
               }}
             >
-              {/* Kolom Kiri: Wadah Foto Produk Memanjang dari Atas ke Bawah */}
+              {/* KOLOM KIRI: Foto Produk & Galeri Thumbnail Sesuai Figma */}
               <div
                 style={{
                   backgroundColor: '#FAF5EE',
                   border: '1px solid #ECE4D9',
-                  borderRadius: '28px',
-                  padding: '2rem 1.75rem',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  boxShadow: '0 4px 16px rgba(67, 40, 28, 0.03)'
+                  borderRadius: '24px',
+                  padding: '1.75rem',
+                  boxShadow: '0 2px 12px rgba(67, 40, 28, 0.03)'
                 }}
               >
-                <img
-                  src={produkDipilih.gambarDetail || produkDipilih.gambar}
-                  alt={produkDipilih.nama}
+                {/* Foto Utama Produk */}
+                <div
                   style={{
-                    width: '100%',
-                    maxWidth: '420px',
-                    height: '520px',
-                    objectFit: 'cover',
+                    backgroundColor: '#FFFFFF',
                     borderRadius: '16px',
-                    display: 'block'
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '420px',
+                    marginBottom: '1.5rem',
+                    border: '1px solid #EFE8DF'
                   }}
-                  onError={(e) => {
-                    e.target.src = produkDipilih.gambar;
-                  }}
-                />
+                >
+                  <img
+                    src={getDaftarGaleri(produkDipilih)[indexFotoAktif]?.src || produkDipilih.gambarDetail}
+                    alt={produkDipilih.nama}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }}
+                    onError={(e) => {
+                      e.target.src = produkDipilih.gambar;
+                    }}
+                  />
+                </div>
+
+                {/* Baris Galeri Foto Produk Sesuai Figma */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {getDaftarGaleri(produkDipilih).map((foto, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setIndexFotoAktif(idx)}
+                        style={{
+                          width: '62px',
+                          height: '52px',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          border: indexFotoAktif === idx ? '2px solid #43281C' : '1px solid #E2D7CC',
+                          transition: 'all 0.2s',
+                          boxShadow: indexFotoAktif === idx ? '0 2px 6px rgba(67, 40, 28, 0.15)' : 'none',
+                          backgroundColor: '#FFFFFF'
+                        }}
+                      >
+                        <img
+                          src={foto.src}
+                          alt={foto.label}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.src = produkDipilih.gambar;
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#43281C', marginBottom: '0.15rem' }}>
+                      Galeri foto produk
+                    </div>
+                    <div style={{ fontSize: '0.775rem', color: '#8E7D73' }}>
+                      Kemasan &bull; label &bull; detail isi
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Kolom Kanan: Rincian Produk */}
-              <div>
-                <h1
+              {/* KOLOM KANAN: Kartu Rincian & Pilihan Varian Sesuai Figma */}
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #ECE4D9',
+                  borderRadius: '24px',
+                  padding: '2rem 2.25rem',
+                  boxShadow: '0 4px 16px rgba(67, 40, 28, 0.04)'
+                }}
+              >
+                {/* Badge Status Ketersediaan Sesuai Figma */}
+                <div style={{ marginBottom: '0.75rem' }}>
+                  {apakahStokHabis ? (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        backgroundColor: '#FFEBEE',
+                        color: '#C62828',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.04em',
+                        padding: '0.35rem 0.95rem',
+                        borderRadius: '9999px'
+                      }}
+                    >
+                      STOK HABIS
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        backgroundColor: '#E8F5E9',
+                        color: '#2E7D32',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.04em',
+                        padding: '0.35rem 0.95rem',
+                        borderRadius: '9999px'
+                      }}
+                    >
+                      TERSEDIA
+                    </span>
+                  )}
+                </div>
+
+                {/* Nama Produk & Subjudul */}
+                <h2
                   style={{
-                    fontSize: '2.4rem',
+                    fontSize: '1.85rem',
                     fontWeight: 800,
                     color: '#43281C',
-                    marginBottom: '0.4rem',
+                    marginBottom: '0.2rem',
                     lineHeight: 1.2
                   }}
                 >
                   {produkDipilih.nama}
-                </h1>
-
-                <p
-                  style={{
-                    fontSize: '1rem',
-                    color: '#8E7D73',
-                    marginBottom: '1.75rem',
-                    lineHeight: 1.5
-                  }}
-                >
+                </h2>
+                <p style={{ fontSize: '0.925rem', color: '#8E7D73', marginBottom: '1.35rem' }}>
                   {produkDipilih.deskripsi}
                 </p>
 
-                {/* Harga Produk */}
-                <div style={{ marginBottom: '1.75rem' }}>
+                {/* Bagian Harga Jual Sesuai Figma */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '0.775rem', color: '#8E7D73', marginBottom: '0.2rem' }}>
+                    Harga jual
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.25rem' }}>
+                    <span style={{ fontSize: '1.85rem', fontWeight: 800, color: '#43281C' }}>
+                      {produkDipilih.harga}
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: '#8E7D73' }}>
+                      Contoh harga mockup
+                    </span>
+                  </div>
+                  <div style={{ borderBottom: '1px solid #EFE8DF', marginTop: '1.15rem' }} />
+                </div>
+
+                {/* Pemilih Varian Rasa Sesuai Figma */}
+                <div style={{ marginBottom: '1.5rem' }}>
                   <div
                     style={{
-                      fontSize: '1.9rem',
-                      fontWeight: 800,
+                      fontSize: '0.875rem',
+                      fontWeight: 700,
                       color: '#43281C',
-                      marginBottom: '0.2rem'
+                      marginBottom: '0.65rem'
                     }}
                   >
-                    {produkDipilih.harga}
+                    Pilih varian rasa
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#8E7D73' }}>
-                    Harga contoh untuk desain
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    {DAFTAR_PRODUK.map((v) => {
+                      const isActive = v.id === produkDipilih.id;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => handleGantiVarian(v.id)}
+                          style={{
+                            backgroundColor: isActive ? '#43281C' : '#FFFFFF',
+                            color: isActive ? '#FFFFFF' : '#43281C',
+                            border: isActive ? 'none' : '1px solid #D8C7B8',
+                            borderRadius: '10px',
+                            padding: '0.65rem 1.35rem',
+                            fontSize: '0.925rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: isActive ? '0 2px 8px rgba(67, 40, 28, 0.15)' : 'none'
+                          }}
+                        >
+                          {v.varian}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Tabel Informasi Produk */}
-                <div
-                  style={{
-                    borderTop: '1px solid #EFE6DC',
-                    paddingTop: '1.25rem',
-                    marginBottom: '2.25rem'
-                  }}
-                >
-                  <h2
+                {/* 2 Kotak Metrik: Berat Bersih & Stok Tersedia Sesuai Figma */}
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.35rem' }}>
+                  <div
                     style={{
-                      fontSize: '1.05rem',
-                      fontWeight: 800,
-                      color: '#43281C',
-                      marginBottom: '1.1rem'
+                      flex: 1,
+                      backgroundColor: '#FAF5EE',
+                      borderRadius: '14px',
+                      padding: '0.9rem 1.15rem'
                     }}
                   >
-                    Informasi produk
-                  </h2>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {/* Baris 1: Varian */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        padding: '0.85rem 0',
-                        borderBottom: '1px solid #F4EDE5',
-                        fontSize: '0.925rem'
-                      }}
-                    >
-                      <span style={{ color: '#8E7D73' }}>Varian</span>
-                      <span style={{ fontWeight: 700, color: '#43281C' }}>
-                        {produkDipilih.varian}
-                      </span>
+                    <div style={{ fontSize: '0.775rem', color: '#8E7D73', marginBottom: '0.25rem' }}>
+                      Berat bersih
                     </div>
-
-                    {/* Baris 2: Berat Bersih */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        padding: '0.85rem 0',
-                        borderBottom: '1px solid #F4EDE5',
-                        fontSize: '0.925rem'
-                      }}
-                    >
-                      <span style={{ color: '#8E7D73' }}>Berat bersih</span>
-                      <span style={{ fontWeight: 700, color: '#43281C' }}>
-                        {produkDipilih.beratGram}
-                      </span>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#43281C' }}>
+                      {produkDipilih.beratBersih}
                     </div>
+                  </div>
 
-                    {/* Baris 3: Ketersediaan */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        padding: '0.85rem 0',
-                        borderBottom: '1px solid #F4EDE5',
-                        fontSize: '0.925rem'
-                      }}
-                    >
-                      <span style={{ color: '#8E7D73' }}>Ketersediaan</span>
-                      <span style={{ fontWeight: 700, color: '#43281C' }}>
-                        {produkDipilih.ketersediaan}
-                      </span>
+                  <div
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#FAF5EE',
+                      borderRadius: '14px',
+                      padding: '0.9rem 1.15rem'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.775rem', color: '#8E7D73', marginBottom: '0.25rem' }}>
+                      Stok tersedia
                     </div>
-
-                    {/* Baris 4: Kategori */}
                     <div
                       style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        padding: '0.85rem 0',
-                        borderBottom: '1px solid #F4EDE5',
-                        fontSize: '0.925rem'
+                        fontSize: '1.25rem',
+                        fontWeight: 800,
+                        color: apakahStokHabis ? '#C62828' : '#2E7D32'
                       }}
                     >
-                      <span style={{ color: '#8E7D73' }}>Kategori</span>
-                      <span style={{ fontWeight: 700, color: '#43281C' }}>
-                        {produkDipilih.kategori}
-                      </span>
+                      {produkDipilih.stokText}
                     </div>
                   </div>
                 </div>
 
-                {/* Tombol Aksi: Lihat Varian Lainnya & Hubungi Penjual */}
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                {/* Banner Status Ketersediaan Sesuai Figma */}
+                <div style={{ marginBottom: '1.75rem' }}>
+                  {apakahStokHabis ? (
+                    <div
+                      style={{
+                        backgroundColor: '#FDF2F2',
+                        border: '1px solid #FFCDD2',
+                        borderRadius: '12px',
+                        padding: '1rem 1.25rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.85rem'
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          backgroundColor: '#C62828',
+                          color: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: '0.9rem',
+                          flexShrink: 0
+                        }}
+                      >
+                        !
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#C62828', marginBottom: '0.15rem' }}>
+                          Produk sedang habis
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#8E7D73' }}>
+                          Pembelian dinonaktifkan. Silakan pilih varian lain.
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        backgroundColor: '#FAF5EE',
+                        borderRadius: '12px',
+                        padding: '1rem 1.25rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.85rem'
+                      }}
+                    >
+                      <CheckCircle2 size={24} style={{ color: '#2E7D32', flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#43281C', marginBottom: '0.15rem' }}>
+                          Stok tersedia
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#8E7D73' }}>
+                          Jumlah stok mengikuti data persediaan dari Owner.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tombol Aksi Sesuai Figma */}
+                <div style={{ display: 'flex', gap: '0.85rem' }}>
+                  {apakahStokHabis ? (
+                    <button
+                      type="button"
+                      disabled
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#D8CFC8',
+                        color: '#8E7D73',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '0.85rem 1.5rem',
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        cursor: 'not-allowed'
+                      }}
+                    >
+                      Stok Habis
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleBeli(produkDipilih)}
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#43281C',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '0.85rem 1.5rem',
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s',
+                        boxShadow: '0 2px 8px rgba(67, 40, 28, 0.15)'
+                      }}
+                      onMouseEnter={(e) => (e.target.style.backgroundColor = '#2F1B12')}
+                      onMouseLeave={(e) => (e.target.style.backgroundColor = '#43281C')}
+                    >
+                      Beli Produk
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={handleKembaliKeKatalog}
-                    style={{
-                      backgroundColor: '#4A3525',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '10px',
-                      padding: '0.85rem 1.85rem',
-                      fontSize: '0.95rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s',
-                      boxShadow: '0 2px 6px rgba(74, 53, 37, 0.2)'
-                    }}
-                    onMouseEnter={(e) => (e.target.style.backgroundColor = '#382619')}
-                    onMouseLeave={(e) => (e.target.style.backgroundColor = '#4A3525')}
-                  >
-                    Lihat varian lainnya
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleHubungiPenjual}
                     style={{
                       backgroundColor: '#FFFFFF',
                       color: '#43281C',
                       border: '1px solid #D8C7B8',
                       borderRadius: '10px',
-                      padding: '0.85rem 1.85rem',
+                      padding: '0.85rem 1.75rem',
                       fontSize: '0.95rem',
                       fontWeight: 700,
                       cursor: 'pointer',
+                      whiteSpace: 'nowrap',
                       transition: 'all 0.2s'
                     }}
                     onMouseEnter={(e) => {
@@ -377,15 +583,27 @@ export default function KatalogProduk() {
                       e.target.style.backgroundColor = '#FFFFFF';
                     }}
                   >
-                    Hubungi penjual
+                    Kembali ke katalog
                   </button>
                 </div>
               </div>
             </div>
+
+            {/* Catatan Kaki Bawah Halaman Sesuai Figma */}
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: '#8E7D73',
+                marginTop: '2.5rem',
+                textAlign: 'left'
+              }}
+            >
+              Harga dan stok pada mockup adalah data contoh; nilai aktual mengikuti data produk dan persediaan yang dikelola Owner.
+            </p>
           </div>
         ) : (
           /* ======================================================================
-             TAMPILAN 2: KATALOG SEMUA VARIAN RENGGINANG (Sesuai Gambar Figma Pertama)
+             TAMPILAN GRID KATALOG PRODUK (Ketika belum ada produk dipilih)
              ====================================================================== */
           <div>
             {/* Header Halaman Katalog */}
@@ -448,17 +666,18 @@ export default function KatalogProduk() {
                 >
                   {/* Foto Produk */}
                   <div
-                    onClick={() => handleBukaDetail(item)}
                     style={{
-                      backgroundColor: '#FAF5EE',
-                      borderRadius: '12px',
+                      height: '240px',
+                      borderRadius: '10px',
                       overflow: 'hidden',
-                      height: '205px',
-                      cursor: 'pointer',
+                      backgroundColor: '#FAF5EE',
+                      marginBottom: '1rem',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      cursor: 'pointer'
                     }}
+                    onClick={() => handleBukaDetail(item)}
                   >
                     <img
                       src={item.gambar}
@@ -466,179 +685,191 @@ export default function KatalogProduk() {
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
-                        transition: 'transform 0.3s'
+                        objectFit: 'cover'
                       }}
-                      onMouseEnter={(e) => (e.target.style.transform = 'scale(1.04)')}
-                      onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
                       onError={(e) => {
-                        e.target.src = '/images/products/rengginang-all-hero.jpg';
+                        e.target.src = item.gambarDetail;
                       }}
                     />
                   </div>
 
-                  {/* Konten Kartu */}
-                  <div style={{ marginTop: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  {/* Keterangan Produk */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <h3
-                      onClick={() => handleBukaDetail(item)}
                       style={{
-                        fontSize: '1.05rem',
+                        fontSize: '1.15rem',
                         fontWeight: 800,
                         color: '#43281C',
                         marginBottom: '0.2rem',
                         cursor: 'pointer'
                       }}
+                      onClick={() => handleBukaDetail(item)}
                     >
                       {item.nama}
                     </h3>
 
-                    <div style={{ fontSize: '0.825rem', color: '#8E7D73', marginBottom: '0.65rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#8E7D73', marginBottom: '0.5rem' }}>
                       {item.berat}
-                    </div>
+                    </p>
 
                     <div
                       style={{
                         fontSize: '1.15rem',
                         fontWeight: 800,
                         color: '#43281C',
-                        marginBottom: '1rem',
-                        marginTop: 'auto'
+                        marginBottom: '1rem'
                       }}
                     >
                       {item.harga}
                     </div>
 
-                    {/* Tombol Beli & Lihat Detail */}
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleBeli(item)}
-                        style={{
-                          backgroundColor: '#4A3525',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          borderRadius: '8px',
-                          padding: '0.5rem 1.25rem',
-                          fontSize: '0.875rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                          flex: 1
-                        }}
-                        onMouseEnter={(e) => (e.target.style.backgroundColor = '#382619')}
-                        onMouseLeave={(e) => (e.target.style.backgroundColor = '#4A3525')}
-                      >
-                        Beli
-                      </button>
-
+                    {/* Tombol Aksi Kartu Grid */}
+                    <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem' }}>
                       <button
                         type="button"
                         onClick={() => handleBukaDetail(item)}
                         style={{
-                          backgroundColor: '#FFFFFF',
-                          color: '#4A3525',
-                          border: '1px solid #E6D8C8',
+                          flex: 1,
+                          backgroundColor: '#43281C',
+                          color: '#FFFFFF',
+                          border: 'none',
                           borderRadius: '8px',
-                          padding: '0.5rem 0.85rem',
+                          padding: '0.65rem 0.75rem',
                           fontSize: '0.875rem',
                           fontWeight: 700,
                           cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                          transition: 'all 0.2s'
+                          transition: 'background-color 0.2s'
                         }}
-                        onMouseEnter={(e) => {
-                          e.target.style.borderColor = '#4A3525';
-                          e.target.style.backgroundColor = '#FAF5EE';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.borderColor = '#E6D8C8';
-                          e.target.style.backgroundColor = '#FFFFFF';
-                        }}
+                        onMouseEnter={(e) => (e.target.style.backgroundColor = '#2F1B12')}
+                        onMouseLeave={(e) => (e.target.style.backgroundColor = '#43281C')}
                       >
-                        Lihat detail ›
+                        Lihat detail
                       </button>
+
+                      {item.stok > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => handleBeli(item)}
+                          style={{
+                            backgroundColor: '#FFFFFF',
+                            color: '#43281C',
+                            border: '1px solid #D8C7B8',
+                            borderRadius: '8px',
+                            padding: '0.65rem 0.85rem',
+                            fontSize: '0.875rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.borderColor = '#43281C';
+                            e.target.style.backgroundColor = '#FAF5EE';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.borderColor = '#D8C7B8';
+                            e.target.style.backgroundColor = '#FFFFFF';
+                          }}
+                        >
+                          Beli
+                        </button>
+                      ) : (
+                        <span
+                          style={{
+                            backgroundColor: '#F5EBEB',
+                            color: '#C62828',
+                            borderRadius: '8px',
+                            padding: '0.65rem 0.65rem',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          Habis
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Kotak Informasi Kualitas (Empat rasa, satu kualitas) */}
+            {/* Banner Informasi Penutup Sesuai Figma */}
             <div
               style={{
                 backgroundColor: '#FAF5EE',
                 border: '1px solid #ECE4D9',
                 borderRadius: '16px',
-                padding: '1.75rem 2rem',
+                padding: '1.5rem',
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 flexWrap: 'wrap',
-                gap: '1.25rem',
-                boxShadow: '0 2px 8px rgba(67, 40, 28, 0.03)'
+                gap: '1rem'
               }}
             >
               <div>
-                <h3
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 800,
-                    color: '#43281C',
-                    marginBottom: '0.35rem'
-                  }}
-                >
-                  Empat rasa, satu kualitas.
-                </h3>
-                <p style={{ fontSize: '0.875rem', color: '#8E7D73', margin: 0 }}>
-                  Foto kemasan asli • Berat bersih 450 gr • Harga dan stok mengikuti data Owner.
-                </p>
+                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#43281C', marginBottom: '0.2rem' }}>
+                  Produk UMKM Rengginang Putra Jaya
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#8E7D73' }}>
+                  Dibuat secara tradisional di Situbondo dengan bahan pilihan tanpa pengawet.
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleLihatInfoUsaha}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  color: '#43281C',
-                  border: '1px solid #D8C7B8',
-                  borderRadius: '10px',
-                  padding: '0.75rem 1.6rem',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = '#43281C';
-                  e.target.style.backgroundColor = '#FAF8F5';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = '#D8C7B8';
-                  e.target.style.backgroundColor = '#FFFFFF';
-                }}
-              >
-                Lihat informasi usaha
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={handleLihatInfoUsaha}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #D8C7B8',
+                    borderRadius: '8px',
+                    padding: '0.65rem 1.25rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    color: '#43281C',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Informasi usaha
+                </button>
+                <button
+                  type="button"
+                  onClick={handleHubungiPenjual}
+                  style={{
+                    backgroundColor: '#43281C',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '0.65rem 1.25rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Hubungi penjual
+                </button>
+              </div>
             </div>
           </div>
         )}
+
       </div>
 
-      {/* ======================================================================
-          MODAL INFORMASI KONTAK & PEMESANAN (Popup Sederhana)
-          ====================================================================== */}
+      {/* Modal Kontak & Pemesanan */}
       {bukaModalKontak && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(67, 40, 28, 0.45)',
+            backgroundColor: 'rgba(43, 27, 20, 0.55)',
+            backdropFilter: 'blur(2px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.25rem',
-            zIndex: 1000
+            zIndex: 1000,
+            padding: '1.25rem'
           }}
           onClick={() => setBukaModalKontak(false)}
         >
@@ -646,100 +877,88 @@ export default function KatalogProduk() {
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '20px',
-              padding: '2rem 2.25rem',
-              maxWidth: '480px',
+              padding: '2rem',
               width: '100%',
-              boxShadow: '0 20px 40px rgba(67, 40, 28, 0.2)',
-              position: 'relative'
+              maxWidth: '440px',
+              boxShadow: '0 20px 40px rgba(67, 40, 28, 0.2)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Tombol Tutup Silang */}
-            <button
-              type="button"
-              onClick={() => setBukaModalKontak(false)}
-              style={{
-                position: 'absolute',
-                top: '1.25rem',
-                right: '1.25rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                color: '#8E7D73',
-                padding: '4px'
-              }}
-            >
-              <X size={20} />
-            </button>
-
-            {/* Header Modal */}
-            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '50%',
-                  backgroundColor: '#FAF5EE',
-                  color: '#43281C',
-                  marginBottom: '0.85rem'
-                }}
-              >
-                <MessageSquare size={24} />
-              </div>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#43281C', marginBottom: '0.35rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#43281C' }}>
                 {judulModal}
-              </h3>
-              <p style={{ fontSize: '0.875rem', color: '#8E7D73' }}>
-                Rengginang Putra Jaya — Produksi Hj. Arifah
-              </p>
-            </div>
-
-            {/* Konten Keterangan */}
-            <div
-              style={{
-                backgroundColor: '#FAF5EE',
-                border: '1px solid #ECE4D9',
-                borderRadius: '12px',
-                padding: '1.25rem',
-                marginBottom: '1.5rem',
-                fontSize: '0.9rem',
-                color: '#43281C',
-                lineHeight: 1.6
-              }}
-            >
-              <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.5rem' }}>
-                <MapPin size={18} color="#8C5835" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>
-                  <strong>Lokasi Usaha:</strong> Situbondo, Jawa Timur
-                </span>
               </div>
-              <div>
-                Pemesanan dan info kemitraan dapat langsung menghubungi pengrajin UMKM kami. Semua produk diproduksi higienis dengan resep tradisional otentik.
-              </div>
-            </div>
-
-            {/* Tombol Selesai */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 type="button"
                 onClick={() => setBukaModalKontak(false)}
                 style={{
-                  backgroundColor: '#4A3525',
-                  color: '#FFFFFF',
+                  background: 'none',
                   border: 'none',
-                  borderRadius: '8px',
-                  padding: '0.65rem 1.5rem',
+                  color: '#8E7D73',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: '#FAF5EE',
+                borderRadius: '12px',
+                padding: '1.15rem',
+                marginBottom: '1.5rem',
+                fontSize: '0.9rem',
+                color: '#66564C',
+                lineHeight: 1.5
+              }}
+            >
+              Untuk pemesanan dan informasi ketersediaan varian rengginang, silakan hubungi kontak resmi Owner:
+              <div style={{ marginTop: '0.75rem', fontWeight: 700, color: '#43281C' }}>
+                WhatsApp: +62 812-3456-7890<br />
+                Lokasi: Situbondo, Jawa Timur
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setBukaModalKontak(false)}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #D8C7B8',
+                  borderRadius: '10px',
+                  padding: '0.65rem 1.25rem',
                   fontSize: '0.9rem',
                   fontWeight: 700,
-                  cursor: 'pointer',
-                  width: '100%'
+                  color: '#43281C',
+                  cursor: 'pointer'
                 }}
               >
                 Tutup
               </button>
+              <a
+                href="https://wa.me/6281234567890"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  backgroundColor: '#2E7D32',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '0.65rem 1.35rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                <MessageSquare size={16} />
+                Hubungi via WA
+              </a>
             </div>
           </div>
         </div>
