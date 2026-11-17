@@ -12,6 +12,8 @@ import (
 	produkapi "rengginang-putra-jaya/auth/1.1.3.2"
 	snapshot "rengginang-putra-jaya/auth/1.1.3.4"
 	stokapi "rengginang-putra-jaya/auth/1.1.4.2"
+	modalapi "rengginang-putra-jaya/auth/1.1.6.3"
+	katalogapi "rengginang-putra-jaya/auth/1.1.8.2"
 )
 
 func main() {
@@ -276,6 +278,63 @@ func main() {
 				handlerStok,
 			),
 		),
+	)
+
+	// ==========================================
+	// WBS 1.1.6.3 - MODAL DAN PENGELUARAN USAHA
+	// ==========================================
+
+	handlerModal := &modalapi.Handler{
+		DB: db,
+	}
+
+	// GET, POST /api/admin/modal
+	http.Handle(
+		"/api/admin/modal",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerModal,
+			),
+		),
+	)
+
+	// GET /api/admin/modal/ringkasan
+	http.Handle(
+		"/api/admin/modal/",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerModal,
+			),
+		),
+	)
+
+	// GET, POST /api/admin/pengeluaran
+	http.Handle(
+		"/api/admin/pengeluaran",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerModal,
+			),
+		),
+	)
+
+	// ==========================================
+	// WBS 1.1.8.2 - API PUBLIC CATALOG PRODUK
+	// ==========================================
+
+	handlerKatalog := &katalogapi.HandlerKatalog{
+		DB: db,
+	}
+
+	// GET /api/katalog dan GET /api/katalog/produk (Publik tanpa sesi)
+	http.Handle(
+		"/api/katalog",
+		handlerKatalog,
+	)
+
+	http.Handle(
+		"/api/katalog/",
+		handlerKatalog,
 	)
 
 	// ==========================================
