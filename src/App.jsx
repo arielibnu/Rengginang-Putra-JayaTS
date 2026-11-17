@@ -31,6 +31,9 @@ import StokKeluarError from './pages/StokKeluarError';
 import PenyesuaianStok from './pages/PenyesuaianStok';
 import RiwayatStok from './pages/RiwayatStok';
 
+// PPL-06: Pencatatan Modal dan Pengeluaran Usaha
+import ModalBiaya from './pages/ModalBiaya';
+
 // PPL-02: Registrasi dan Login Pelanggan
 import LoginPelanggan from './pages/LoginPelanggan';
 import DaftarPelanggan from './pages/DaftarPelanggan';
@@ -133,6 +136,24 @@ function AppContent() {
         <Route
           path="/admin/stok/riwayat"
           element={<RiwayatStok />}
+        />
+
+        {/* PPL-06: Pencatatan Modal dan Pengeluaran Usaha */}
+        <Route
+          path="/admin/biaya"
+          element={<ModalBiaya />}
+        />
+        <Route
+          path="/admin/modal"
+          element={<ModalBiaya />}
+        />
+        <Route
+          path="/admin/modal-biaya"
+          element={<ModalBiaya />}
+        />
+        <Route
+          path="/admin/pengeluaran"
+          element={<ModalBiaya />}
         />
       </Routes>
     );

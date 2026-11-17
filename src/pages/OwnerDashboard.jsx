@@ -229,7 +229,10 @@ export default function OwnerDashboard() {
               </div>
             </li>
             <li>
-              <div className="sidebar-item">
+              <div
+                className="sidebar-item"
+                onClick={() => navigate('/admin/biaya')}
+              >
                 <Diamond size={16} />
                 <span>Modal & Biaya</span>
               </div>

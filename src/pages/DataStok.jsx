@@ -173,7 +173,7 @@ export default function DataStok() {
             <li>
               <div
                 className="sidebar-item"
-                onClick={() => navigate('/admin/dashboard')}
+                onClick={() => navigate('/admin/biaya')}
               >
                 <Diamond size={16} />
                 <span>Modal & Biaya</span>

@@ -12,6 +12,7 @@ import (
 	produkapi "rengginang-putra-jaya/auth/1.1.3.2"
 	snapshot "rengginang-putra-jaya/auth/1.1.3.4"
 	stokapi "rengginang-putra-jaya/auth/1.1.4.2"
+	modalapi "rengginang-putra-jaya/auth/1.1.6.3"
 )
 
 func main() {
@@ -274,6 +275,44 @@ func main() {
 		middlewareSesiPemilik(
 			middlewarePerlindunganCSRF(
 				handlerStok,
+			),
+		),
+	)
+
+	// ==========================================
+	// WBS 1.1.6.3 - MODAL DAN PENGELUARAN USAHA
+	// ==========================================
+
+	handlerModal := &modalapi.Handler{
+		DB: db,
+	}
+
+	// GET, POST /api/admin/modal
+	http.Handle(
+		"/api/admin/modal",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerModal,
+			),
+		),
+	)
+
+	// GET /api/admin/modal/ringkasan
+	http.Handle(
+		"/api/admin/modal/",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerModal,
+			),
+		),
+	)
+
+	// GET, POST /api/admin/pengeluaran
+	http.Handle(
+		"/api/admin/pengeluaran",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerModal,
 			),
 		),
 	)

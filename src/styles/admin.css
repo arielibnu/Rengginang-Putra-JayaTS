@@ -1704,3 +1704,85 @@
   color: #8E7D73;
 }
 
+/* ==========================================================================
+   CSS PPL-06: MODAL & PENGELUARAN (SESUAI MOCKUP FIGMA)
+   ========================================================================== */
+.modal-cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid #F6EFE8;
+}
+
+.modal-cost-row:last-child {
+  border-bottom: none;
+}
+
+.modal-cost-name {
+  font-weight: 700;
+  color: #43281C;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.modal-cost-status {
+  color: #8E7D73;
+  font-size: 0.9rem;
+  margin-right: 3rem;
+}
+
+.btn-ubah-link {
+  color: #8C5835;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.btn-ubah-link:hover {
+  color: #43281C;
+  text-decoration: underline;
+}
+
+.modal-pj-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #FAF5EE;
+  color: #43281C;
+  font-weight: 800;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-note-box {
+  background-color: #FAF5EE;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-note-title {
+  font-weight: 800;
+  font-size: 0.875rem;
+  color: #8C5835;
+  margin-bottom: 0.3rem;
+}
+
+.modal-note-text {
+  font-size: 0.825rem;
+  color: #66564C;
+  line-height: 1.45;
+}
+
+
