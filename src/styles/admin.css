@@ -257,7 +257,7 @@
 .admin-main {
   flex-grow: 1;
   padding: 2rem 2.5rem;
-  background-color: #FFFFFF;
+  background-color: #FAF7F2;
   overflow-y: auto;
 }
 
@@ -428,14 +428,17 @@
   .admin-layout {
     flex-direction: column;
   }
+
   .admin-sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #EFE8DF;
   }
+
   .metrics-row {
     grid-template-columns: 1fr;
   }
+
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -445,8 +448,1259 @@
   .products-grid {
     grid-template-columns: 1fr;
   }
+
   .admin-main {
     padding: 1.25rem;
   }
+}
+
+/* ==========================================================================
+   CSS PPL-03: KELOLA PRODUK & MODAL FORM (Sesuai Figma Mockup)
+   ========================================================================== */
+
+.product-management-wrapper {
+  position: relative;
+}
+
+/* Header Kelola Produk */
+.product-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.product-page-title {
+  font-size: 2.15rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.product-page-subtitle {
+  font-size: 0.95rem;
+  color: #8E7D73;
+}
+
+.btn-add-product {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #43281C;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 0.85rem 1.45rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(67, 40, 28, 0.15);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-add-product:hover {
+  background-color: #2F1B12;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(67, 40, 28, 0.22);
+}
+
+/* Container Tabel Putih */
+.products-table-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 20px rgba(67, 40, 28, 0.03);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.products-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.products-table th {
+  text-align: left;
+  padding: 0.85rem 1rem 1.15rem;
+  color: #66564C;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-bottom: 1px solid #F0EAE1;
+}
+
+.products-table td {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #F5EFEB;
+  vertical-align: middle;
+}
+
+.products-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.products-table tbody tr:hover td {
+  background-color: #FAF8F5;
+}
+
+/* Baris Sel Produk */
+.product-cell-flex {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.product-table-img {
+  width: 58px;
+  height: 68px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.product-table-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.2rem;
+}
+
+.product-table-sub {
+  font-size: 0.8125rem;
+  color: #8E7D73;
+}
+
+.product-table-price {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #43281C;
+}
+
+.product-table-weight {
+  font-size: 0.95rem;
+  color: #43281C;
+}
+
+/* Badge Status Aktif / Nonaktif */
+.badge-status-active {
+  display: inline-block;
+  padding: 0.35rem 0.95rem;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background-color: #EBF7EE;
+  color: #2E7D32;
+}
+
+.badge-status-inactive {
+  display: inline-block;
+  padding: 0.35rem 0.95rem;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background-color: #F3EFEA;
+  color: #8E7D73;
+}
+
+/* Aksi Tabel */
+.table-actions-flex {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.btn-action-delete {
+  background: none;
+  border: none;
+  color: #C62828;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  font-family: inherit;
+  transition: opacity 0.2s ease;
+}
+
+.btn-action-delete:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.btn-action-edit {
+  background: none;
+  border: none;
+  color: #43281C;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: inherit;
+  transition: opacity 0.2s ease;
+}
+
+.btn-action-edit:hover {
+  opacity: 0.75;
+}
+
+.chevron-symbol {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.empty-table-cell {
+  text-align: center;
+  padding: 3rem 1rem !important;
+  color: #8E7D73;
+  font-size: 0.95rem;
+}
+
+.table-footnote {
+  font-size: 0.8125rem;
+  color: #8E7D73;
+  margin-top: 1.25rem;
+}
+
+/* ==========================================================================
+   Modal Dialogs (Tambah, Edit, Hapus/Nonaktifkan)
+   ========================================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 27, 19, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.25rem;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal-box {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 2.25rem;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 40px rgba(67, 40, 28, 0.18);
+  animation: slideUp 0.2s ease-out;
+}
+
+.modal-box-delete {
+  max-width: 460px;
+  text-align: center;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #43281C;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #8E7D73;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background-color: #F8F3EA;
+  color: #43281C;
+}
+
+.modal-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #FDF2F0;
+  border: 1px solid #F5C6CB;
+  color: #A92631;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.925rem;
+  border: 1px solid #E5DCD2;
+  border-radius: 10px;
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.form-textarea:focus {
+  border-color: #43281C;
+}
+
+/* Pemilihan Foto Preset */
+.photo-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.photo-preset-btn {
+  background: #FAF6EF;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photo-preset-btn img {
+  width: 100%;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.photo-preset-btn span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #66564C;
+}
+
+.photo-preset-btn.selected {
+  border-color: #43281C;
+  background-color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(67, 40, 28, 0.12);
+}
+
+.photo-preset-btn.selected span {
+  color: #43281C;
+}
+
+.custom-photo-upload {
+  margin-top: 0.5rem;
+}
+
+.upload-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+  color: #66564C;
+  background-color: #FAF6EF;
+  border: 1px dashed #DDD3C7;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.upload-file-label:hover {
+  background-color: #F0EAE1;
+  border-color: #43281C;
+  color: #43281C;
+}
+
+/* Radio Status */
+.status-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background-color: #FAF8F5;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #EFE8DF;
+}
+
+.status-radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  color: #43281C;
+  cursor: pointer;
+}
+
+.status-radio-label input[type="radio"] {
+  margin-top: 3px;
+  accent-color: #43281C;
+}
+
+.radio-text {
+  font-size: 0.825rem;
+  color: #66564C;
+  line-height: 1.35;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #F0EAE1;
+}
+
+.btn-modal-cancel {
+  background-color: #FFFFFF;
+  border: 1px solid #DDD2C4;
+  color: #43281C;
+  padding: 0.75rem 2rem;
+  border-radius: 10px;
+  font-size: 0.925rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  text-align: center;
+}
+
+.btn-modal-cancel:hover {
+  background-color: #FAF5EF;
+  border-color: #43281C;
+}
+
+.btn-modal-confirm,
+.btn-modal-save {
+  background-color: #4A3525;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.75rem 2.25rem;
+  border-radius: 10px;
+  font-size: 0.925rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(67, 40, 28, 0.16);
+  transition: all 0.2s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.btn-modal-confirm:hover,
+.btn-modal-save:hover {
+  background-color: #311C13;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(67, 40, 28, 0.22);
+}
+
+/* Dialog Hapus / Nonaktifkan Khusus */
+.modal-delete-icon {
+  width: 56px;
+  height: 56px;
+  background-color: #FDF2F0;
+  color: #C62828;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+.modal-delete-target {
+  font-size: 1.15rem;
+  color: #43281C;
+  margin-bottom: 1.25rem;
+}
+
+.modal-delete-info-box {
+  background-color: #FAF6EF;
+  border: 1px solid #EFE8DF;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.info-box-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #43281C;
+  margin-bottom: 0.45rem;
+}
+
+.info-box-desc {
+  font-size: 0.8rem;
+  color: #66564C;
+  line-height: 1.5;
+}
+
+.modal-delete-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.btn-action-deactivate {
+  background-color: #43281C;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.925rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-action-deactivate:hover {
+  background-color: #2F1B12;
+}
+
+.btn-action-hard-delete {
+  background-color: #FDF2F0;
+  color: #C62828;
+  border: 1px solid #F5C6CB;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-action-hard-delete:hover {
+  background-color: #FCE8E6;
+}
+
+/* Toast Notifikasi */
+.toast-notification {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background-color: #FFFFFF;
+  color: #2E7D32;
+  padding: 0.85rem 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(67, 40, 28, 0.12);
+  border: 1px solid #E8F5E9;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: slideInRight 0.25s ease-out;
+}
+
+.toast-notification.error {
+  color: #C62828;
+  border-color: #F5C6CB;
+  background-color: #FFF8F8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   CSS VIEW EDIT / TAMBAH PRODUK (Sesuai Gambar Mockup Terbaru)
+   ========================================================================== */
+
+.product-edit-outer-container {
+  background-color: #F6EFE6;
+  border-radius: 24px;
+  padding: 3.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.product-edit-card {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 2.75rem 2.5rem;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 4px 24px rgba(67, 40, 28, 0.04);
+}
+
+.product-edit-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+
+.product-edit-subtitle {
+  font-size: 0.95rem;
+  color: #8E7D73;
+  margin-bottom: 2rem;
+}
+
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.edit-form-full {
+  margin-bottom: 2.25rem;
+}
+
+.edit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.edit-form-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #43281C;
+}
+
+.edit-form-input {
+  width: 100%;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.95rem;
+  border: 1px solid #E5DCD2;
+  border-radius: 12px;
+  outline: none;
+  font-family: inherit;
+  color: #43281C;
+  background-color: #FFFFFF;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-form-input:focus {
+  border-color: #43281C;
+  box-shadow: 0 0 0 3px rgba(67, 40, 28, 0.08);
+}
+
+.edit-form-select {
+  width: 100%;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.95rem;
+  border: 1px solid #E5DCD2;
+  border-radius: 12px;
+  outline: none;
+  font-family: inherit;
+  color: #43281C;
+  background-color: #FFFFFF;
+  cursor: pointer;
+  appearance: auto;
+  transition: border-color 0.2s ease;
+}
+
+.edit-form-select:focus {
+  border-color: #43281C;
+  box-shadow: 0 0 0 3px rgba(67, 40, 28, 0.08);
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-edit-cancel {
+  background-color: #FFFFFF;
+  border: 1px solid #E5DCD2;
+  border-radius: 12px;
+  padding: 0.85rem 2.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #43281C;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit-cancel:hover {
+  background-color: #FAF6EF;
+  border-color: #DDD3C7;
+}
+
+.btn-edit-save {
+  background-color: #4A3525;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 0.85rem 2.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(67, 40, 28, 0.15);
+  transition: all 0.2s ease;
+}
+
+.btn-edit-save:hover {
+  background-color: #382518;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(67, 40, 28, 0.22);
+}
+
+@media (max-width: 768px) {
+  .product-edit-outer-container {
+    padding: 1.5rem 1rem;
+  }
+  .product-edit-card {
+    padding: 1.75rem 1.25rem;
+  }
+  .edit-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .edit-form-actions {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+  .btn-edit-cancel,
+  .btn-edit-save {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   CSS PPL-04: PERSEDIAAN DATA STOK (SESUAI MOCKUP FIGMA)
+   ========================================================================== */
+.stock-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1.5rem;
+}
+
+.btn-catat-mutasi {
+  background-color: #43281C;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 1.4rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-catat-mutasi:hover {
+  background-color: #311C13;
+}
+
+.stock-formula-banner {
+  background-color: #FAF5EE;
+  border: 1px solid #EFE6D9;
+  border-radius: 14px;
+  padding: 1.15rem 1.35rem;
+  margin-bottom: 2rem;
+}
+
+.stock-formula-title {
+  font-size: 0.975rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.35rem;
+}
+
+.stock-formula-desc {
+  font-size: 0.85rem;
+  color: #8E7D73;
+  line-height: 1.4;
+}
+
+.stock-table-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 1rem 1.75rem;
+  margin-bottom: 2.25rem;
+  box-shadow: 0 2px 8px rgba(67, 40, 28, 0.03);
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stock-table th {
+  padding: 1.1rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #66564C;
+  border-bottom: 1px solid #EFE8DF;
+}
+
+.stock-table td {
+  padding: 1.25rem 1rem;
+  font-size: 0.95rem;
+  color: #43281C;
+  border-bottom: 1px solid #F6EFE8;
+}
+
+.stock-table tr:last-child td {
+  border-bottom: none;
+}
+
+.stock-item-name {
+  font-weight: 700;
+  color: #43281C;
+}
+
+.stock-num-green {
+  font-weight: 800;
+  color: #1E833B;
+}
+
+.stock-history-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stock-history-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.25rem;
+}
+
+.stock-history-sub {
+  font-size: 0.875rem;
+  color: #8E7D73;
+}
+
+.btn-lihat-riwayat {
+  background-color: #FFFFFF;
+  border: 1px solid #DDD2C4;
+  color: #43281C;
+  padding: 0.7rem 1.6rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-lihat-riwayat:hover {
+  background-color: #FAF5EF;
+  border-color: #43281C;
+}
+
+.stock-footnote {
+  font-size: 0.8rem;
+  color: #8E7D73;
+}
+
+/* ==========================================================================
+   CSS PPL-04: FORM CATAT MUTASI STOK
+   ========================================================================== */
+.stock-mutation-layout {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 1.75rem;
+  align-items: start;
+  margin-bottom: 2rem;
+}
+
+.btn-back-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #FFFFFF;
+  border: 1px solid #DDD2C4;
+  color: #43281C;
+  border-radius: 10px;
+  padding: 0.7rem 1.4rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-back-stock:hover {
+  background-color: #FAF5EF;
+  border-color: #43281C;
+}
+
+.mutation-type-pills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.mutation-pill-btn {
+  padding: 0.75rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid #E5DCD2;
+  background-color: #FFFFFF;
+  color: #66564C;
+  transition: all 0.2s;
+}
+
+.mutation-pill-btn:hover {
+  border-color: #43281C;
+  color: #43281C;
+}
+
+.mutation-pill-btn.active {
+  background-color: #43281C;
+  color: #FFFFFF;
+  border-color: #43281C;
+}
+
+.input-with-suffix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-suffix .form-input {
+  padding-right: 3.5rem;
+}
+
+.input-suffix-text {
+  position: absolute;
+  right: 1.1rem;
+  color: #8E7D73;
+  font-size: 0.875rem;
+  pointer-events: none;
+  font-weight: 500;
+}
+
+.stock-summary-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 8px rgba(67, 40, 28, 0.03);
+  margin-bottom: 1.5rem;
+}
+
+.stock-summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.stock-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid #F6EFE8;
+  font-size: 0.9rem;
+  color: #66564C;
+}
+
+.stock-summary-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.stock-summary-val-bold {
+  font-weight: 700;
+  color: #43281C;
+}
+
+.stock-summary-val-green {
+  font-weight: 800;
+  color: #1E833B;
+  font-size: 1.05rem;
+}
+
+.rules-card {
+  background-color: #FAF5EE;
+  border: 1px solid #EFE6D9;
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+}
+
+.rules-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.75rem;
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #66564C;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .stock-mutation-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   CSS PPL-04: SUKSES, ERROR, DAN RIWAYAT MUTASI STOK
+   ========================================================================== */
+
+/* 1. Tampilan Sukses Mutasi */
+.stock-success-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(67, 40, 28, 0.04);
+}
+
+.success-circle-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background-color: #EAF7EE;
+  color: #1E833B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.stock-success-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.35rem;
+}
+
+.stock-success-sub {
+  font-size: 0.925rem;
+  color: #8E7D73;
+  margin-bottom: 2rem;
+}
+
+.mutation-detail-box {
+  background-color: #FAF5EE;
+  border-radius: 14px;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.mutation-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.mutation-detail-col-title {
+  font-size: 0.8rem;
+  color: #8E7D73;
+  margin-bottom: 0.25rem;
+}
+
+.mutation-detail-col-val {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #43281C;
+}
+
+.mutation-detail-note {
+  font-size: 0.825rem;
+  color: #8E7D73;
+  border-top: 1px solid #ECE2D5;
+  padding-top: 0.75rem;
+}
+
+.success-actions-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 2. Tampilan Error Validasi Stok */
+.stock-alert-card {
+  background-color: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.stock-alert-card-title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: #B91C1C;
+  margin-bottom: 0.35rem;
+}
+
+.stock-alert-card-desc {
+  font-size: 0.875rem;
+  color: #7F1D1D;
+  line-height: 1.45;
+}
+
+.input-helper-error {
+  font-size: 0.8rem;
+  color: #DC2626;
+  margin-top: 0.4rem;
+}
+
+/* 3. Tampilan Riwayat Mutasi Stok */
+.history-filter-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.history-filter-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.2fr;
+  gap: 1rem;
+}
+
+.history-item-subtitle {
+  font-size: 0.775rem;
+  color: #8E7D73;
+  margin-top: 0.15rem;
+}
+
+.badge-history-type {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.badge-type-masuk {
+  color: #1E833B;
+}
+
+.badge-type-keluar {
+  color: #A92631;
+}
+
+.badge-type-penyesuaian {
+  color: #8C5835;
+}
+
+.history-diff-positive {
+  font-weight: 800;
+  color: #1E833B;
+  font-size: 0.95rem;
+}
+
+.history-diff-negative {
+  font-weight: 800;
+  color: #A92631;
+  font-size: 0.95rem;
+}
+
+.banner-history-info {
+  background-color: #FAF5EE;
+  border-radius: 14px;
+  padding: 1.25rem 1.75rem;
+  margin-top: 2rem;
+}
+
+.banner-history-info-title {
+  font-size: 0.925rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.25rem;
+}
+
+.banner-history-info-sub {
+  font-size: 0.825rem;
+  color: #8E7D73;
 }
 

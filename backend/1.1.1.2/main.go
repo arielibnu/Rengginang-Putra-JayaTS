@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -12,44 +11,44 @@ import (
 	pelanggan "rengginang-putra-jaya/auth/1.1.2.2"
 	produkapi "rengginang-putra-jaya/auth/1.1.3.2"
 	snapshot "rengginang-putra-jaya/auth/1.1.3.4"
+	stokapi "rengginang-putra-jaya/auth/1.1.4.2"
 )
 
 func main() {
-	// Koneksi MySQL
+	// ==========================================
+	// KONEKSI DATABASE
+	// ==========================================
+
 	if err := hubungkanDatabase(); err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	// Cek kondisi server
+	// ==========================================
+	// ENDPOINT KESEHATAN SERVER
+	// ==========================================
+
 	http.HandleFunc("/api/kesehatan", func(
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", "GET")
-			kirimJSON(
-				w,
-				http.StatusMethodNotAllowed,
+			kirimJSON(w, http.StatusMethodNotAllowed,
 				map[string]string{
 					"pesan": "Metode tidak diizinkan",
-				},
-			)
+				})
 			return
 		}
 
-		kirimJSON(
-			w,
-			http.StatusOK,
-			map[string]string{
-				"status": "ok",
-				"pesan":  "Backend Rengginang Putra Jaya berjalan",
-			},
-		)
+		kirimJSON(w, http.StatusOK, map[string]string{
+			"status": "ok",
+			"pesan":  "Backend Rengginang Putra Jaya berjalan",
+		})
 	})
 
 	// ==========================================
-	// PPL-01: LOGIN OWNER
+	// WBS 1.1.1.2 - LOGIN OWNER
 	// ==========================================
 
 	http.Handle(
@@ -77,42 +76,33 @@ func main() {
 			) {
 				if r.Method != http.MethodGet {
 					w.Header().Set("Allow", "GET")
-					kirimJSON(
-						w,
-						http.StatusMethodNotAllowed,
+					kirimJSON(w, http.StatusMethodNotAllowed,
 						map[string]string{
 							"pesan": "Metode tidak diizinkan",
-						},
-					)
+						})
 					return
 				}
 
 				idPemilik, ada := ambilIDPemilik(r)
 				if !ada {
-					kirimJSON(
-						w,
-						http.StatusUnauthorized,
+					kirimJSON(w, http.StatusUnauthorized,
 						map[string]string{
 							"pesan": "Sesi pemilik tidak valid",
-						},
-					)
+						})
 					return
 				}
 
-				kirimJSON(
-					w,
-					http.StatusOK,
+				kirimJSON(w, http.StatusOK,
 					map[string]interface{}{
 						"pesan":      "Sesi pemilik valid",
 						"id_pemilik": idPemilik,
-					},
-				)
+					})
 			}),
 		),
 	)
 
 	// ==========================================
-	// PPL-01: HAK AKSES ADMIN
+	// WBS 1.1.1.3 - HAK AKSES ADMIN
 	// ==========================================
 
 	http.Handle(
@@ -123,15 +113,13 @@ func main() {
 	)
 
 	// ==========================================
-	// PPL-02: REGISTRASI DAN LOGIN PELANGGAN
-	// WBS 1.1.2.2
+	// WBS 1.1.2.2 - REGISTRASI DAN LOGIN PELANGGAN
 	// ==========================================
 
 	handlerPelanggan := &pelanggan.Handler{
 		DB: db,
 	}
 
-	// POST - Daftar pelanggan
 	http.Handle(
 		"/api/pelanggan/daftar",
 		middlewarePerlindunganCSRF(
@@ -139,7 +127,6 @@ func main() {
 		),
 	)
 
-	// POST - Login pelanggan
 	http.Handle(
 		"/api/pelanggan/masuk",
 		middlewarePembatasLogin(
@@ -149,13 +136,11 @@ func main() {
 		),
 	)
 
-	// GET - Profil pelanggan
 	http.Handle(
 		"/api/pelanggan/profil",
 		http.HandlerFunc(handlerPelanggan.Profil),
 	)
 
-	// POST - Logout pelanggan
 	http.Handle(
 		"/api/pelanggan/keluar",
 		middlewarePerlindunganCSRF(
@@ -164,8 +149,7 @@ func main() {
 	)
 
 	// ==========================================
-	// PPL-03: CRUD PRODUK DAN VARIAN
-	// WBS 1.1.3.2
+	// WBS 1.1.3.2 - CRUD PRODUK DAN VARIAN
 	// ==========================================
 
 	handlerProduk := &produkapi.HandlerProduk{
@@ -176,7 +160,7 @@ func main() {
 		DB: db,
 	}
 
-	// GET / POST produk
+	// GET dan POST produk.
 	http.Handle(
 		"/api/admin/produk",
 		middlewareSesiPemilik(
@@ -186,8 +170,7 @@ func main() {
 		),
 	)
 
-	// GET / PUT / DELETE produk
-	// GET / POST varian berdasarkan produk
+	// GET, PUT, DELETE produk dan pengelolaan varian.
 	http.Handle(
 		"/api/admin/produk/",
 		middlewareSesiPemilik(
@@ -206,6 +189,7 @@ func main() {
 						"/",
 					)
 
+					// Endpoint varian berdasarkan ID produk.
 					if len(bagian) == 2 &&
 						bagian[1] == "varian" {
 
@@ -216,13 +200,11 @@ func main() {
 						)
 
 						if err != nil || idProduk == 0 {
-							kirimJSON(
-								w,
+							kirimJSON(w,
 								http.StatusBadRequest,
 								map[string]string{
 									"pesan": "ID produk tidak valid",
-								},
-							)
+								})
 							return
 						}
 
@@ -234,13 +216,14 @@ func main() {
 						return
 					}
 
+					// Endpoint CRUD produk.
 					handlerProduk.ServeHTTP(w, r)
 				}),
 			),
 		),
 	)
 
-	// PUT / DELETE varian
+	// PUT dan DELETE varian.
 	http.Handle(
 		"/api/admin/varian/",
 		middlewareSesiPemilik(
@@ -251,15 +234,13 @@ func main() {
 	)
 
 	// ==========================================
-	// PPL-03: SNAPSHOT HARGA TRANSAKSI
-	// WBS 1.1.3.4
+	// WBS 1.1.3.4 - SNAPSHOT HARGA TRANSAKSI
 	// ==========================================
 
 	handlerSnapshot := &snapshot.Handler{
 		DB: db,
 	}
 
-	// POST transaksi
 	http.Handle(
 		"/api/admin/transaksi",
 		middlewareSesiPemilik(
@@ -269,7 +250,6 @@ func main() {
 		),
 	)
 
-	// GET riwayat transaksi
 	http.Handle(
 		"/api/admin/transaksi/",
 		middlewareSesiPemilik(
@@ -280,7 +260,26 @@ func main() {
 	)
 
 	// ==========================================
-	// SERVER UTAMA
+	// WBS 1.1.4.2 - MUTASI DAN RIWAYAT STOK
+	// ==========================================
+
+	handlerStok := &stokapi.Handler{
+		DB: db,
+	}
+
+	// POST /api/admin/stok/mutasi
+	// GET  /api/admin/stok/riwayat
+	http.Handle(
+		"/api/admin/stok/",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerStok,
+			),
+		),
+	)
+
+	// ==========================================
+	// KONFIGURASI SERVER
 	// ==========================================
 
 	port := os.Getenv("PORT")
@@ -288,7 +287,7 @@ func main() {
 		port = "8080"
 	}
 
-	// CORS untuk frontend React
+	// Middleware CORS untuk komunikasi frontend.
 	penanganAPI := admin.MiddlewareCORS(
 		http.DefaultServeMux,
 	)
