@@ -2039,4 +2039,266 @@
   }
 }
 
+/* ==========================================================================
+   CSS PPL-05: PENGATURAN BATAS MINIMUM & TABEL PERSEDIAAN (SESUAI FIGMA)
+   ========================================================================== */
+
+/* Baris Tombol Aksi Header Persediaan Stok */
+.stock-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-atur-minimum {
+  background-color: #43281C;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-atur-minimum:hover {
+  background-color: #2F1B12;
+  box-shadow: 0 4px 12px rgba(67, 40, 28, 0.15);
+}
+
+/* Baris Varian Stok Menipis pada Tabel */
+.row-highlight-low {
+  background-color: #FEF6F6 !important;
+}
+
+.row-highlight-low td {
+  background-color: #FEF6F6 !important;
+}
+
+/* Kotak Aturan Peringatan Otomatis Sesuai Figma */
+.rule-auto-warning-box {
+  background-color: #FAF5EE;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.75rem;
+}
+
+.rule-auto-warning-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.35rem;
+}
+
+.rule-auto-warning-desc {
+  font-size: 0.85rem;
+  color: #8E7D73;
+  line-height: 1.45;
+}
+
+/* Modal Dialog Atur Batas Minimum */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(43, 27, 20, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.25rem;
+}
+
+.modal-dialog {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 2.25rem 2.25rem 2rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 40px rgba(67, 40, 28, 0.2);
+  animation: modalSlideUp 0.25s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #F0EAE1;
+  margin-bottom: 1.5rem;
+}
+
+.modal-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background-color: #FAF5EE;
+  color: #8C5835;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-title-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.2rem;
+}
+
+.modal-subtitle-text {
+  font-size: 0.825rem;
+  color: #8E7D73;
+}
+
+.modal-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal-form-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #43281C;
+}
+
+.modal-select {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid #E5DCD2;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #43281C;
+  outline: none;
+  background-color: #FFFFFF;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+
+.modal-select:focus {
+  border-color: #43281C;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid #E5DCD2;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #43281C;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.modal-input:focus {
+  border-color: #43281C;
+}
+
+/* Box Informasi Stok Saat Ini Pada Modal */
+.modal-stock-preview-box {
+  background-color: #FAF5EE;
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-stock-preview-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #66564C;
+  margin-bottom: 0.85rem;
+}
+
+.modal-stock-preview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+  font-size: 0.875rem;
+  color: #66564C;
+}
+
+.modal-stock-preview-row:last-child {
+  margin-bottom: 0;
+}
+
+.modal-stock-preview-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.modal-stock-preview-val.low {
+  color: #C62828;
+}
+
+.modal-stock-preview-val.safe {
+  color: #2E7D32;
+}
+
+.modal-helper-text {
+  font-size: 0.775rem;
+  color: #8E7D73;
+  margin-bottom: 1.75rem;
+}
+
+.modal-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-modal-cancel {
+  background-color: #FFFFFF;
+  border: 1px solid #D8C7B8;
+  border-radius: 10px;
+  padding: 0.75rem 1.75rem;
+  color: #43281C;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-modal-cancel:hover {
+  background-color: #F8F3EA;
+  border-color: #C5B2A1;
+}
+
+.btn-modal-submit {
+  background-color: #43281C;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 2rem;
+  color: #FFFFFF;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-modal-submit:hover {
+  background-color: #2F1B12;
+}
+
+
 

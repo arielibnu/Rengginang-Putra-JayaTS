@@ -85,7 +85,7 @@ function AppContent() {
           element={<KelolaProduk />}
         />
 
-        {/* Data Stok PPL-04 */}
+        {/* Data Stok PPL-04 & Peringatan Minimum PPL-05 */}
         <Route
           path="/admin/stok"
           element={<DataStok />}
@@ -96,6 +96,14 @@ function AppContent() {
         />
         <Route
           path="/admin/data-stok"
+          element={<DataStok />}
+        />
+        <Route
+          path="/admin/stok/peringatan-minimum"
+          element={<DataStok />}
+        />
+        <Route
+          path="/admin/stok/peringatan"
           element={<DataStok />}
         />
         <Route
