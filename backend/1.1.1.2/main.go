@@ -337,6 +337,15 @@ func main() {
 		),
 	)
 
+	// GET, POST /api/admin/pengeluaran
+	http.Handle(
+		"/api/admin/pengeluaran",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				handlerModal,
+			),
+		),
+	)
 	// ==========================================
 	// WBS 1.1.8.2 - API PUBLIC CATALOG PRODUK
 	// ==========================================

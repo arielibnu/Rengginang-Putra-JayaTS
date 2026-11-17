@@ -147,7 +147,7 @@ function AppContent() {
           element={<RiwayatStok />}
         />
 
-        {/* Modal & Biaya PPL-06 */}
+        {/* PPL-06: Pencatatan Modal dan Pengeluaran Usaha */}
         <Route
           path="/admin/biaya"
           element={<ModalBiaya />}
@@ -187,7 +187,7 @@ function AppContent() {
           }
         />
 
-        {/* Katalog Produk Publik PPL-08 */}
+        {/* PPL-08: Katalog Varian Rengginang */}
         <Route
           path="/katalog"
           element={<KatalogProduk />}
