@@ -1704,3 +1704,339 @@
   color: #8E7D73;
 }
 
+/* ==========================================================================
+   CSS PPL-06: MODAL & PENGELUARAN (SESUAI MOCKUP FIGMA)
+   ========================================================================== */
+.modal-cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid #F6EFE8;
+}
+
+.modal-cost-row:last-child {
+  border-bottom: none;
+}
+
+.modal-cost-name {
+  font-weight: 700;
+  color: #43281C;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.modal-cost-status {
+  color: #8E7D73;
+  font-size: 0.9rem;
+  margin-right: 3rem;
+}
+
+.btn-ubah-link {
+  color: #8C5835;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.btn-ubah-link:hover {
+  color: #43281C;
+  text-decoration: underline;
+}
+
+.modal-pj-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #FAF5EE;
+  color: #43281C;
+  font-weight: 800;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-note-box {
+  background-color: #FAF5EE;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-note-title {
+  font-weight: 800;
+  font-size: 0.875rem;
+  color: #8C5835;
+  margin-bottom: 0.3rem;
+}
+
+.modal-note-text {
+  font-size: 0.825rem;
+  color: #66564C;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   CSS PPL-05: PERINGATAN STOK MENIPIS & RINGKASAN STOK OWNER (SESUAI FIGMA)
+   ========================================================================== */
+
+/* Banner Peringatan Stok Menipis Sesuai Mockup Figma */
+.stock-warning-banner {
+  background-color: #FEF7EA;
+  border: 1px solid #FFE0A3;
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.25rem;
+}
+
+.stock-warning-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.stock-warning-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #FDE8C8;
+  color: #43281C;
+  font-weight: 800;
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stock-warning-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.2rem;
+}
+
+.stock-warning-desc-primary {
+  font-size: 0.875rem;
+  color: #66564C;
+  margin-bottom: 0.15rem;
+}
+
+.stock-warning-desc-sub {
+  font-size: 0.825rem;
+  color: #8E7D73;
+}
+
+.btn-warning-action {
+  background-color: #FFFFFF;
+  border: 1px solid #D8C7B8;
+  border-radius: 10px;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #43281C;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-warning-action:hover {
+  background-color: #F8F3EA;
+  border-color: #C5B2A1;
+}
+
+/* Bagian Ringkasan Stok Per Varian Sesuai Figma */
+.stock-summary-section {
+  margin-bottom: 2.5rem;
+}
+
+.stock-summary-header {
+  margin-bottom: 1.25rem;
+}
+
+.stock-summary-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.25rem;
+}
+
+.stock-summary-subtitle {
+  font-size: 0.875rem;
+  color: #8E7D73;
+}
+
+.stock-summary-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 0.75rem 1.75rem;
+  box-shadow: 0 1px 3px rgba(67, 40, 28, 0.03);
+}
+
+.stock-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stock-summary-table th {
+  padding: 1.15rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #8E7D73;
+  border-bottom: 1px solid #EFE8DF;
+}
+
+.stock-summary-table td {
+  padding: 1.25rem 0.75rem;
+  font-size: 0.95rem;
+  color: #43281C;
+  border-bottom: 1px solid #F6EFE8;
+}
+
+.stock-summary-table tr:last-child td {
+  border-bottom: none;
+}
+
+.stock-summary-table tbody tr:hover td {
+  background-color: #FAF8F5;
+}
+
+.stock-num-highlight-low {
+  color: #C62828 !important;
+  font-weight: 800;
+}
+
+/* Badge Status Normal & Menipis */
+.badge-status-normal {
+  display: inline-block;
+  padding: 0.3rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  background-color: #E8F5E9;
+  color: #2E7D32;
+}
+
+.badge-status-menipis {
+  display: inline-block;
+  padding: 0.3rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+}
+
+/* Kartu Varian Produk Pada Dashboard */
+.product-card-vertical {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(67, 40, 28, 0.03);
+  transition: all 0.2s ease;
+}
+
+.product-card-vertical:hover {
+  border-color: #D8C7B8;
+  box-shadow: 0 4px 12px rgba(67, 40, 28, 0.06);
+}
+
+.product-card-thumb {
+  width: 72px;
+  height: 96px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: #FAF6EF;
+}
+
+.product-card-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.product-card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.15rem;
+}
+
+.product-card-weight {
+  font-size: 0.8125rem;
+  color: #8E7D73;
+  margin-bottom: 0.25rem;
+}
+
+.product-card-price {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 0.45rem;
+}
+
+.product-card-stock-label {
+  font-size: 0.75rem;
+  color: #8E7D73;
+  margin-bottom: 0.15rem;
+}
+
+.product-card-stock-val {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.product-card-stock-val.safe {
+  color: #2E7D32;
+}
+
+.product-card-stock-val.low {
+  color: #C62828;
+}
+
+.product-card-badge-low {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.725rem;
+  font-weight: 700;
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+  margin-top: 0.35rem;
+  width: fit-content;
+}
+
+@media (max-width: 992px) {
+  .stock-warning-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .btn-warning-action {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+
