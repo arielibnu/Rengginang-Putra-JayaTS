@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { X, MessageSquare, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
 
+const API_URL = 'http://localhost:8080';
+
 // Data 4 varian rengginang sesuai mockup resmi Figma PPL-08 & PPL-09
 const DAFTAR_PRODUK = [
   {
@@ -107,6 +109,48 @@ export default function KatalogProduk() {
     }
   }, [location.search, params.id]);
 
+  // Sinkronisasi data detail dan status ketersediaan dengan backend (WBS 1.1.9.3)
+  useEffect(() => {
+    if (!produkDipilih?.id) return;
+    let isMounted = true;
+
+    fetch(`${API_URL}/api/katalog/detail?id=${produkDipilih.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Gagal memuat status dari backend');
+        return res.json();
+      })
+      .then((res) => {
+        if (isMounted && res.status === 'sukses' && res.data) {
+          const be = res.data;
+          setProdukDipilih((prev) => {
+            if (!prev || prev.id !== be.id_varian) return prev;
+            return {
+              ...prev,
+              nama: be.nama,
+              varian: be.nama_varian,
+              beratBersih: be.berat_bersih_teks || prev.beratBersih,
+              harga: be.harga_teks || prev.harga,
+              stok: be.stok,
+              stokText: be.stok_tersedia_teks || `${be.stok} bungkus`,
+              statusKetersediaan: be.status_ketersediaan,
+              bisaDibeli: be.bisa_dibeli,
+              pesanStatus: be.pesan_status,
+              subPesan: be.sub_pesan,
+              deskripsi: be.deskripsi || prev.deskripsi
+            };
+          });
+        }
+      })
+      .catch((err) => {
+        // Fallback aman jika backend belum terhubung/offline
+        console.warn('Backend detail produk offline, menggunakan fallback lokal:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [produkDipilih?.id]);
+
   // Handler saat memilih varian dari grid katalog
   const handleBukaDetail = (produk) => {
     setProdukDipilih(produk);
@@ -130,14 +174,42 @@ export default function KatalogProduk() {
     }
   };
 
-  // Handler tombol Beli Produk
-  const handleBeli = (produk) => {
+  // Handler tombol Beli Produk dengan validasi pembatasan interaksi pembelian (WBS 1.1.9.3)
+  const handleBeli = async (produk) => {
+    if (produk.stok <= 0 || produk.bisaDibeli === false || produk.statusKetersediaan === 'STOK HABIS') {
+      alert('Produk sedang habis. Pembelian dinonaktifkan.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/katalog/validasi-beli`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_varian: produk.id,
+          jumlah: 1
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || (data && data.bisa_dibeli === false)) {
+        alert(data.pesan || 'Produk sedang habis. Pembelian tidak dapat dilanjutkan.');
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend validasi offline, fallback ke verifikasi lokal:', err);
+    }
+
     setJudulModal(`Pesan ${produk.nama}`);
     setBukaModalKontak(true);
   };
 
-  // Tentukan apakah produk yang sedang dilihat stoknya habis
-  const apakahStokHabis = produkDipilih && (produkDipilih.stok === 0 || produkDipilih.statusKetersediaan === 'STOK HABIS');
+  // Tentukan apakah produk yang sedang dilihat stoknya habis (WBS 1.1.9.3)
+  const apakahStokHabis =
+    produkDipilih &&
+    (produkDipilih.stok <= 0 ||
+      produkDipilih.statusKetersediaan === 'STOK HABIS' ||
+      produkDipilih.bisaDibeli === false);
 
   // Daftar galeri foto untuk varian yang dipilih
   const getDaftarGaleri = (p) => [
@@ -484,10 +556,10 @@ export default function KatalogProduk() {
                       </div>
                       <div>
                         <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#C62828', marginBottom: '0.15rem' }}>
-                          Produk sedang habis
+                          {produkDipilih.pesanStatus || 'Produk sedang habis'}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: '#8E7D73' }}>
-                          Pembelian dinonaktifkan. Silakan pilih varian lain.
+                          {produkDipilih.subPesan || 'Pembelian dinonaktifkan. Silakan pilih varian lain.'}
                         </div>
                       </div>
                     </div>
@@ -505,10 +577,10 @@ export default function KatalogProduk() {
                       <CheckCircle2 size={24} style={{ color: '#2E7D32', flexShrink: 0 }} />
                       <div>
                         <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#43281C', marginBottom: '0.15rem' }}>
-                          Stok tersedia
+                          {produkDipilih.pesanStatus || 'Stok tersedia'}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: '#8E7D73' }}>
-                          Jumlah stok mengikuti data persediaan dari Owner.
+                          {produkDipilih.subPesan || 'Jumlah stok mengikuti data persediaan dari Owner.'}
                         </div>
                       </div>
                     </div>

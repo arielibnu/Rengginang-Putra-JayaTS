@@ -15,6 +15,7 @@ import (
 	peringatanstok "rengginang-putra-jaya/auth/1.1.5.2"
 	modalapi "rengginang-putra-jaya/auth/1.1.6.3"
 	katalogapi "rengginang-putra-jaya/auth/1.1.8.2"
+	ketersediaanproduk "rengginang-putra-jaya/auth/1.1.9.3"
 )
 
 func main() {
@@ -363,6 +364,26 @@ func main() {
 	http.Handle(
 		"/api/katalog/",
 		handlerKatalog,
+	)
+
+	// ==========================================
+	// WBS 1.1.9.3 - DETAIL PRODUK & VALIDASI STOK HABIS (DISABLED BUTTON)
+	// ==========================================
+
+	handlerKetersediaan := &ketersediaanproduk.HandlerDetail{
+		DB: db,
+	}
+
+	// GET /api/katalog/detail (Publik tanpa sesi)
+	http.HandleFunc(
+		"/api/katalog/detail",
+		handlerKetersediaan.HandlerDetailProduk,
+	)
+
+	// POST /api/katalog/validasi-beli (Validasi pembatasan interaksi pembelian)
+	http.HandleFunc(
+		"/api/katalog/validasi-beli",
+		handlerKetersediaan.HandlerValidasiBeli,
 	)
 
 	// ==========================================
