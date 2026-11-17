@@ -12,6 +12,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import CatalogPlaceholder from './pages/CatalogPlaceholder';
+import KatalogProduk from './pages/KatalogProduk';
 import ContactModal from './components/ContactModal';
 import LoginInfoModal from './components/LoginInfoModal';
 
@@ -178,10 +179,22 @@ function AppContent() {
           }
         />
 
-        {/* Katalog dapat diakses tanpa login */}
+        {/* PPL-08: Katalog Varian Rengginang */}
         <Route
           path="/katalog"
-          element={<CatalogPlaceholder />}
+          element={<KatalogProduk />}
+        />
+        <Route
+          path="/katalog/:id"
+          element={<KatalogProduk />}
+        />
+        <Route
+          path="/produk"
+          element={<KatalogProduk />}
+        />
+        <Route
+          path="/produk/:id"
+          element={<KatalogProduk />}
         />
 
         {/* Login pelanggan PPL-02 */}

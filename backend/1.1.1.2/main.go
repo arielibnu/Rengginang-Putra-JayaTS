@@ -13,6 +13,7 @@ import (
 	snapshot "rengginang-putra-jaya/auth/1.1.3.4"
 	stokapi "rengginang-putra-jaya/auth/1.1.4.2"
 	modalapi "rengginang-putra-jaya/auth/1.1.6.3"
+	katalogapi "rengginang-putra-jaya/auth/1.1.8.2"
 )
 
 func main() {
@@ -315,6 +316,25 @@ func main() {
 				handlerModal,
 			),
 		),
+	)
+
+	// ==========================================
+	// WBS 1.1.8.2 - API PUBLIC CATALOG PRODUK
+	// ==========================================
+
+	handlerKatalog := &katalogapi.HandlerKatalog{
+		DB: db,
+	}
+
+	// GET /api/katalog dan GET /api/katalog/produk (Publik tanpa sesi)
+	http.Handle(
+		"/api/katalog",
+		handlerKatalog,
+	)
+
+	http.Handle(
+		"/api/katalog/",
+		handlerKatalog,
 	)
 
 	// ==========================================

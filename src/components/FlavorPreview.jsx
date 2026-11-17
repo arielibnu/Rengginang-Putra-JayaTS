@@ -33,7 +33,7 @@ export default function FlavorPreview() {
 
                 <div className="card-bottom-row">
                   <span className="card-item-price">{item.price}</span>
-                  <Link to={BUSINESS_CONFIG.routes.catalog} className="card-detail-link">
+                  <Link to={`${BUSINESS_CONFIG.routes.catalog}?id=${item.id}`} className="card-detail-link">
                     Lihat detail
                   </Link>
                 </div>
