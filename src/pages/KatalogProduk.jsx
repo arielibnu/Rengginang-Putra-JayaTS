@@ -218,6 +218,20 @@ export default function KatalogProduk() {
     { label: 'Detail isi', src: '/images/products/rengginang-all-hero.jpg' }
   ];
 
+  // Handler untuk banner informasi penutup katalog
+  const handleHubungiPenjual = () => {
+    setJudulModal('Hubungi Penjual');
+    setBukaModalKontak(true);
+  };
+
+  const handleLihatInfoUsaha = () => {
+    navigate('/');
+    setTimeout(() => {
+      const el = document.getElementById('tentang');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
   return (
     <div style={{ backgroundColor: '#FAF8F5', minHeight: '85vh', paddingBottom: '4rem' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '2rem 1.5rem' }}>
