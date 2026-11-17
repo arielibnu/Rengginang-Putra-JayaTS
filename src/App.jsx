@@ -22,6 +22,15 @@ import OwnerDashboard from './pages/OwnerDashboard';
 // PPL-03: Pengelolaan Produk dan Varian
 import KelolaProduk from './pages/KelolaProduk';
 
+// PPL-04: Pengelolaan Stok dan Riwayat Persediaan
+import DataStok from './pages/DataStok';
+import CatatMutasi from './pages/CatatMutasi';
+import CatatStokKeluar from './pages/CatatStokKeluar';
+import MutasiTersimpan from './pages/MutasiTersimpan';
+import StokKeluarError from './pages/StokKeluarError';
+import PenyesuaianStok from './pages/PenyesuaianStok';
+import RiwayatStok from './pages/RiwayatStok';
+
 // PPL-02: Registrasi dan Login Pelanggan
 import LoginPelanggan from './pages/LoginPelanggan';
 import DaftarPelanggan from './pages/DaftarPelanggan';
@@ -74,6 +83,56 @@ function AppContent() {
         <Route
           path="/admin/produk"
           element={<KelolaProduk />}
+        />
+
+        {/* Data Stok PPL-04 */}
+        <Route
+          path="/admin/stok"
+          element={<DataStok />}
+        />
+        <Route
+          path="/admin/persediaan"
+          element={<DataStok />}
+        />
+        <Route
+          path="/admin/data-stok"
+          element={<DataStok />}
+        />
+        <Route
+          path="/admin/stok/mutasi"
+          element={<CatatMutasi />}
+        />
+        <Route
+          path="/admin/stok/catat"
+          element={<CatatMutasi />}
+        />
+        <Route
+          path="/admin/stok/keluar"
+          element={<CatatStokKeluar />}
+        />
+        <Route
+          path="/admin/stok/catat-keluar"
+          element={<CatatStokKeluar />}
+        />
+        <Route
+          path="/admin/stok/tersimpan"
+          element={<MutasiTersimpan />}
+        />
+        <Route
+          path="/admin/stok/sukses"
+          element={<MutasiTersimpan />}
+        />
+        <Route
+          path="/admin/stok/error"
+          element={<StokKeluarError />}
+        />
+        <Route
+          path="/admin/stok/penyesuaian"
+          element={<PenyesuaianStok />}
+        />
+        <Route
+          path="/admin/stok/riwayat"
+          element={<RiwayatStok />}
         />
       </Routes>
     );
