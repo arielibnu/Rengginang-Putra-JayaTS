@@ -12,8 +12,12 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import CatalogPlaceholder from './pages/CatalogPlaceholder';
+import KatalogProduk from './pages/KatalogProduk';
 import ContactModal from './components/ContactModal';
 import LoginInfoModal from './components/LoginInfoModal';
+
+// PPL-06: Pencatatan Modal dan Pengeluaran Usaha
+import ModalBiaya from './pages/ModalBiaya';
 
 // PPL-01: Login Owner dan Dashboard
 import LoginOwner from './pages/LoginOwner';
@@ -142,6 +146,24 @@ function AppContent() {
           path="/admin/stok/riwayat"
           element={<RiwayatStok />}
         />
+
+        {/* Modal & Biaya PPL-06 */}
+        <Route
+          path="/admin/biaya"
+          element={<ModalBiaya />}
+        />
+        <Route
+          path="/admin/modal"
+          element={<ModalBiaya />}
+        />
+        <Route
+          path="/admin/modal-biaya"
+          element={<ModalBiaya />}
+        />
+        <Route
+          path="/admin/pengeluaran"
+          element={<ModalBiaya />}
+        />
       </Routes>
     );
   }
@@ -165,10 +187,22 @@ function AppContent() {
           }
         />
 
-        {/* Katalog dapat diakses tanpa login */}
+        {/* Katalog Produk Publik PPL-08 */}
         <Route
           path="/katalog"
-          element={<CatalogPlaceholder />}
+          element={<KatalogProduk />}
+        />
+        <Route
+          path="/katalog/:id"
+          element={<KatalogProduk />}
+        />
+        <Route
+          path="/produk"
+          element={<KatalogProduk />}
+        />
+        <Route
+          path="/produk/:id"
+          element={<KatalogProduk />}
         />
 
         {/* Login pelanggan PPL-02 */}
