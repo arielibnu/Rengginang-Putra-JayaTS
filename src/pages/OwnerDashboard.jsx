@@ -71,8 +71,8 @@ export default function OwnerDashboard() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // State daftar stok varian (sinkron dengan localStorage jika sudah dimutasi di DataStok)
-  const [daftarVarian] = useState(() => {
+  // State daftar stok varian (sinkron dengan backend dan localStorage)
+  const [daftarVarian, setDaftarVarian] = useState(() => {
     try {
       const dataTersimpan = localStorage.getItem(STORAGE_KEY);
       if (!dataTersimpan) return DATA_VARIAN_AWAL;
@@ -144,6 +144,35 @@ export default function OwnerDashboard() {
           localStorage.removeItem('ownerAuth');
           setIsAuthorized(true);
           setErrorMessage('');
+
+          // Ambil status peringatan stok langsung dari API backend PPL-05
+          try {
+            const resPeringatan = await fetch(`${API_URL}/api/admin/stok/peringatan`, options);
+            if (resPeringatan.ok) {
+              const jsonPeringatan = await resPeringatan.json();
+              if (jsonPeringatan?.data?.daftar_varian?.length > 0) {
+                setDaftarVarian((prev) =>
+                  prev.map((item) => {
+                    const dariBE = jsonPeringatan.data.daftar_varian.find(
+                      (v) => v.nama_varian.toLowerCase().includes(item.id)
+                    );
+                    if (dariBE) {
+                      return {
+                        ...item,
+                        fisik: dariBE.stok_fisik ?? item.fisik,
+                        reservasi: dariBE.reservasi ?? item.reservasi,
+                        tersedia: dariBE.stok_tersedia ?? item.tersedia,
+                        minimum: dariBE.batas_minimum ?? item.minimum
+                      };
+                    }
+                    return item;
+                  })
+                );
+              }
+            }
+          } catch (eAPI) {
+            console.log('Mode fallback data lokal dashboard:', eAPI.message);
+          }
         }
       } catch (error) {
         if (error.name !== 'AbortError' && !controller.signal.aborted) {

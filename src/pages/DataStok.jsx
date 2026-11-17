@@ -10,6 +10,7 @@ const STORAGE_KEY = 'rengginang_data_stok';
 const INITIAL_STOCK_DATA = [
   {
     id: 'udang',
+    dbId: 1,
     nama: 'Rengginang Udang',
     fisik: 34,
     reservasi: 2,
@@ -18,6 +19,7 @@ const INITIAL_STOCK_DATA = [
   },
   {
     id: 'bawang',
+    dbId: 2,
     nama: 'Rengginang Bawang',
     fisik: 40,
     reservasi: 2,
@@ -26,6 +28,7 @@ const INITIAL_STOCK_DATA = [
   },
   {
     id: 'cumi',
+    dbId: 3,
     nama: 'Rengginang Cumi',
     fisik: 14,
     reservasi: 2,
@@ -34,6 +37,7 @@ const INITIAL_STOCK_DATA = [
   },
   {
     id: 'terasi',
+    dbId: 4,
     nama: 'Rengginang Terasi',
     fisik: 40,
     reservasi: 2,
@@ -88,11 +92,11 @@ export default function DataStok() {
     }
   }, [daftarStok]);
 
-  // Validasi sesi login Owner
+  // Validasi sesi login Owner dan muat status stok dari backend
   useEffect(() => {
     const controller = new AbortController();
 
-    const cekSesiOwner = async () => {
+    const cekSesiDanMuatStok = async () => {
       try {
         const response = await fetch(`${API_URL}/api/pemilik/profil`, {
           method: 'GET',
@@ -106,6 +110,39 @@ export default function DataStok() {
         }
 
         setIsAuthorized(true);
+
+        // Ambil data peringatan dan batas minimum dari backend API PPL-05
+        try {
+          const resPeringatan = await fetch(`${API_URL}/api/admin/stok/peringatan`, {
+            method: 'GET',
+            credentials: 'include',
+            signal: controller.signal
+          });
+          if (resPeringatan.ok) {
+            const jsonPeringatan = await resPeringatan.json();
+            if (jsonPeringatan?.data?.daftar_varian?.length > 0) {
+              setDaftarStok((prev) =>
+                prev.map((item) => {
+                  const dariBE = jsonPeringatan.data.daftar_varian.find(
+                    (v) => v.id_varian === item.dbId || v.nama_varian.toLowerCase().includes(item.id)
+                  );
+                  if (dariBE) {
+                    return {
+                      ...item,
+                      fisik: dariBE.stok_fisik ?? item.fisik,
+                      reservasi: dariBE.reservasi ?? item.reservasi,
+                      tersedia: dariBE.stok_tersedia ?? item.tersedia,
+                      minimum: dariBE.batas_minimum ?? item.minimum
+                    };
+                  }
+                  return item;
+                })
+              );
+            }
+          }
+        } catch (eAPI) {
+          console.log('Mode fallback data lokal untuk peringatan stok:', eAPI.message);
+        }
       } catch (err) {
         // Jika backend belum aktif, tetap izinkan pratinjau frontend mandiri
         setIsAuthorized(true);
@@ -114,7 +151,7 @@ export default function DataStok() {
       }
     };
 
-    cekSesiOwner();
+    cekSesiDanMuatStok();
     return () => controller.abort();
   }, [navigate]);
 
@@ -163,18 +200,38 @@ export default function DataStok() {
     }
   };
 
-  // Simpan batas minimum baru
-  const handleSaveMinimum = (e) => {
+  // Simpan batas minimum baru ke backend dan state lokal
+  const handleSaveMinimum = async (e) => {
     e.preventDefault();
     const parsedMin = parseInt(inputMinimum, 10);
     const validMin = isNaN(parsedMin) || parsedMin < 0 ? 0 : parsedMin;
 
+    const target = daftarStok.find((item) => item.id === selectedVariantId);
+    const dbId = target?.dbId || (selectedVariantId === 'udang' ? 1 : selectedVariantId === 'bawang' ? 2 : selectedVariantId === 'cumi' ? 3 : 4);
+
+    // Update state dan cache lokal segera
     setDaftarStok((prev) =>
       prev.map((item) =>
         item.id === selectedVariantId ? { ...item, minimum: validMin } : item
       )
     );
     setIsModalOpen(false);
+
+    // Kirim pembaruan ke API backend PPL-05 (WBS 1.1.5.2)
+    try {
+      await fetch(`${API_URL}/api/admin/stok/batas-minimum`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id_varian: dbId,
+          batas_minimum: validMin,
+          catatan: 'Pengaturan batas ambang stok Owner'
+        })
+      });
+    } catch (errAPI) {
+      console.warn('Pembaruan batas minimum tersimpan di cache lokal:', errAPI.message);
+    }
   };
 
   // Status varian terpilih di dalam modal berdasarkan input yang sedang diketik
