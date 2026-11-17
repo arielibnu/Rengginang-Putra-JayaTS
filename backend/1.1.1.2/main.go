@@ -12,6 +12,7 @@ import (
 	produkapi "rengginang-putra-jaya/auth/1.1.3.2"
 	snapshot "rengginang-putra-jaya/auth/1.1.3.4"
 	stokapi "rengginang-putra-jaya/auth/1.1.4.2"
+	peringatanstok "rengginang-putra-jaya/auth/1.1.5.2"
 )
 
 func main() {
@@ -274,6 +275,34 @@ func main() {
 		middlewareSesiPemilik(
 			middlewarePerlindunganCSRF(
 				handlerStok,
+			),
+		),
+	)
+
+	// ==========================================
+	// WBS 1.1.5.2 - PERINGATAN STOK MENIPIS & BATAS MINIMUM
+	// ==========================================
+
+	handlerPeringatan := &peringatanstok.Handler{
+		DB: db,
+	}
+
+	// GET, POST, PUT /api/admin/stok/batas-minimum
+	http.Handle(
+		"/api/admin/stok/batas-minimum",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				http.HandlerFunc(handlerPeringatan.HandlerBatasMinimum),
+			),
+		),
+	)
+
+	// GET /api/admin/stok/peringatan
+	http.Handle(
+		"/api/admin/stok/peringatan",
+		middlewareSesiPemilik(
+			middlewarePerlindunganCSRF(
+				http.HandlerFunc(handlerPeringatan.HandlerPeringatanStok),
 			),
 		),
 	)
