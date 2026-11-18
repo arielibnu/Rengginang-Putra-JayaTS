@@ -16,6 +16,9 @@ import KatalogProduk from './pages/KatalogProduk';
 import ContactModal from './components/ContactModal';
 import LoginInfoModal from './components/LoginInfoModal';
 
+// PPL-06: Pencatatan Modal dan Pengeluaran Usaha
+import ModalBiaya from './pages/ModalBiaya';
+
 // PPL-01: Login Owner dan Dashboard
 import LoginOwner from './pages/LoginOwner';
 import OwnerDashboard from './pages/OwnerDashboard';
@@ -31,9 +34,6 @@ import MutasiTersimpan from './pages/MutasiTersimpan';
 import StokKeluarError from './pages/StokKeluarError';
 import PenyesuaianStok from './pages/PenyesuaianStok';
 import RiwayatStok from './pages/RiwayatStok';
-
-// PPL-06: Pencatatan Modal dan Pengeluaran Usaha
-import ModalBiaya from './pages/ModalBiaya';
 
 // PPL-02: Registrasi dan Login Pelanggan
 import LoginPelanggan from './pages/LoginPelanggan';
@@ -89,7 +89,7 @@ function AppContent() {
           element={<KelolaProduk />}
         />
 
-        {/* Data Stok PPL-04 */}
+        {/* Data Stok PPL-04 & Peringatan Minimum PPL-05 */}
         <Route
           path="/admin/stok"
           element={<DataStok />}
@@ -100,6 +100,14 @@ function AppContent() {
         />
         <Route
           path="/admin/data-stok"
+          element={<DataStok />}
+        />
+        <Route
+          path="/admin/stok/peringatan-minimum"
+          element={<DataStok />}
+        />
+        <Route
+          path="/admin/stok/peringatan"
           element={<DataStok />}
         />
         <Route
