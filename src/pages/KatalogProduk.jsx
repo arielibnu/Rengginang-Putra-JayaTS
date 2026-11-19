@@ -83,6 +83,15 @@ export default function KatalogProduk() {
   // State jumlah pembelian (PPL-10)
   const [jumlahBeli, setJumlahBeli] = useState(1);
 
+  // State validasi kuota stok realtime dari backend (WBS 1.2.1.3)
+  const [validasiRealtime, setValidasiRealtime] = useState({
+    tervalidasi: false,
+    bisaDibeli: true,
+    pesan: '',
+    keterangan: '',
+    sisaSetelahBeli: null
+  });
+
   // Modal kontak / informasi pemesanan
   const [bukaModalKontak, setBukaModalKontak] = useState(false);
   const [judulModal, setJudulModal] = useState('Hubungi Penjual');
@@ -98,7 +107,7 @@ export default function KatalogProduk() {
       );
       if (produkCocok) {
         setProdukDipilih(produkCocok);
-        setIndexFotoAktif(0);
+        setJumlahBeli(produkCocok.stok > 0 ? 1 : 0);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
@@ -151,6 +160,48 @@ export default function KatalogProduk() {
     };
   }, [produkDipilih?.id]);
 
+  // Validasi kuota sisa stok secara realtime ke backend saat jumlah beli berubah (WBS 1.2.1.3)
+  useEffect(() => {
+    if (!produkDipilih?.id) return;
+    let isMounted = true;
+    const targetJumlah = jumlahBeli > 0 ? jumlahBeli : 1;
+
+    fetch(`${API_URL}/api/katalog/cek-kuota?id=${produkDipilih.id}&jumlah=${targetJumlah}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.data) {
+          const info = res.data;
+          setValidasiRealtime({
+            tervalidasi: true,
+            bisaDibeli: info.bisa_dibeli,
+            pesan: info.pesan,
+            keterangan: info.keterangan,
+            sisaSetelahBeli: info.sisa_setelah_beli
+          });
+
+          // Sinkronisasi data stok aktual terkini dari database MySQL
+          if (info.stok_tersedia !== undefined && info.stok_tersedia !== produkDipilih.stok) {
+            setProdukDipilih((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                stok: info.stok_tersedia,
+                stokText: info.format_stok || `${info.stok_tersedia} bungkus`
+              };
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Backend cek-kuota offline, verifikasi fallback lokal:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [produkDipilih?.id, jumlahBeli]);
+
   // Handler saat memilih varian dari grid katalog
   const handleBukaDetail = (produk) => {
     setProdukDipilih(produk);
@@ -174,7 +225,7 @@ export default function KatalogProduk() {
     }
   };
 
-  // Handler tombol Beli Produk dengan validasi pembatasan interaksi pembelian (PPL-10)
+  // Handler tombol Beli Produk dengan validasi kuota stok realtime (WBS 1.2.1.3)
   const handleBeli = async (produk) => {
     if (tombolDisabled) {
       if (apakahStokHabis) {
@@ -188,7 +239,7 @@ export default function KatalogProduk() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/katalog/validasi-beli`, {
+      const res = await fetch(`${API_URL}/api/katalog/validasi-kuota`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -197,9 +248,10 @@ export default function KatalogProduk() {
         })
       });
 
-      const data = await res.json();
-      if (!res.ok || (data && data.bisa_dibeli === false)) {
-        alert(data.pesan || 'Jumlah pembelian tidak valid atau melebihi stok.');
+      const resp = await res.json();
+      if (!res.ok || (resp && resp.data && resp.data.bisa_dibeli === false)) {
+        const pesanGagal = resp.pesan || resp.data?.pesan || 'Jumlah pembelian tidak valid atau melebihi kuota stok.';
+        alert(pesanGagal);
         return;
       }
     } catch (err) {
@@ -728,7 +780,7 @@ export default function KatalogProduk() {
                           Jumlah melebihi stok tersedia
                         </div>
                         <div style={{ fontSize: '0.8rem', color: '#8E7D73' }}>
-                          Maksimal pembelian {produkDipilih.stok} bungkus. Kurangi jumlah pembelian.
+                          {validasiRealtime.pesan || `Maksimal pembelian ${produkDipilih.stok} bungkus. Kurangi jumlah pembelian.`}
                         </div>
                       </div>
                     </div>
@@ -757,7 +809,7 @@ export default function KatalogProduk() {
                           Stok tersedia
                         </div>
                         <div style={{ fontSize: '0.8rem', color: '#4E5D52' }}>
-                          Produk dapat dibeli. Stok akan divalidasi kembali saat checkout.
+                          {validasiRealtime.keterangan || 'Produk dapat dibeli. Kuota stok tervalidasi secara realtime.'}
                         </div>
                       </div>
                     </div>

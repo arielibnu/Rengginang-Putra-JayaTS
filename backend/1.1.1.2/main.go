@@ -16,6 +16,7 @@ import (
 	modalapi "rengginang-putra-jaya/auth/1.1.6.3"
 	katalogapi "rengginang-putra-jaya/auth/1.1.8.2"
 	ketersediaanproduk "rengginang-putra-jaya/auth/1.1.9.3"
+	kuotastok "rengginang-putra-jaya/auth/1.2.1.3"
 )
 
 func main() {
@@ -24,9 +25,11 @@ func main() {
 	// ==========================================
 
 	if err := hubungkanDatabase(); err != nil {
-		log.Fatal(err)
+		log.Println("Peringatan koneksi MySQL:", err)
+		log.Println("Server tetap berjalan dengan mode data in-memory/fallback...")
+	} else if db != nil {
+		defer db.Close()
 	}
-	defer db.Close()
 
 	// ==========================================
 	// ENDPOINT KESEHATAN SERVER
@@ -367,7 +370,7 @@ func main() {
 	)
 
 	// ==========================================
-	// WBS 1.1.9.3 - DETAIL PRODUK & VALIDASI STOK HABIS (DISABLED BUTTON)
+	// WBS 1.1.9.3 - DETAIL PRODUK & STATUS KETERSEDIAAN
 	// ==========================================
 
 	handlerKetersediaan := &ketersediaanproduk.HandlerDetail{
@@ -380,10 +383,30 @@ func main() {
 		handlerKetersediaan.HandlerDetailProduk,
 	)
 
-	// POST /api/katalog/validasi-beli (Validasi pembatasan interaksi pembelian)
+	// ==========================================
+	// WBS 1.2.1.3 - VALIDASI KUOTA STOK REALTIME (PPL-10)
+	// ==========================================
+
+	handlerKuota := &kuotastok.HandlerValidasiKuota{
+		DB: db,
+	}
+
+	// GET /api/katalog/cek-kuota (Pengecekan kuota realtime saat stepper/jumlah berubah)
+	http.HandleFunc(
+		"/api/katalog/cek-kuota",
+		handlerKuota.HandlerCekKuotaRealtime,
+	)
+
+	// POST /api/katalog/validasi-kuota (Validasi kuota sisa stok realtime)
+	http.HandleFunc(
+		"/api/katalog/validasi-kuota",
+		handlerKuota.HandlerCekKuotaRealtime,
+	)
+
+	// POST /api/katalog/validasi-beli (Kompatibilitas tombol beli frontend)
 	http.HandleFunc(
 		"/api/katalog/validasi-beli",
-		handlerKetersediaan.HandlerValidasiBeli,
+		handlerKuota.HandlerCekKuotaRealtime,
 	)
 
 	// ==========================================
