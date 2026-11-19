@@ -17,6 +17,8 @@ import (
 	katalogapi "rengginang-putra-jaya/auth/1.1.8.2"
 	ketersediaanproduk "rengginang-putra-jaya/auth/1.1.9.3"
 	kuotastok "rengginang-putra-jaya/auth/1.2.1.3"
+	statemanager "rengginang-putra-jaya/auth/1.2.2.2"
+	validasikeranjang "rengginang-putra-jaya/auth/1.2.2.4"
 	checkoutapi "rengginang-putra-jaya/auth/1.2.3.3"
 )
 
@@ -408,6 +410,48 @@ func main() {
 	http.HandleFunc(
 		"/api/katalog/validasi-beli",
 		handlerKuota.HandlerCekKuotaRealtime,
+	)
+
+	// ==========================================
+	// WBS 1.2.2.2 - STATE MANAGER KERANJANG BELANJA (PPL-11)
+	// ==========================================
+
+	handlerStateManager := &statemanager.HandlerStateManager{
+		DB: db,
+	}
+
+	http.HandleFunc(
+		"/api/keranjang/sinkronisasi",
+		handlerStateManager.HandlerSinkronisasiKeranjang,
+	)
+	http.HandleFunc(
+		"/api/keranjang",
+		handlerStateManager.HandlerAmbilKeranjang,
+	)
+	http.HandleFunc(
+		"/api/keranjang/item",
+		handlerStateManager.HandlerHapusItemKeranjang,
+	)
+	http.HandleFunc(
+		"/api/keranjang/bersihkan",
+		handlerStateManager.HandlerBersihkanKeranjang,
+	)
+
+	// ==========================================
+	// WBS 1.2.2.4 - API VALIDASI KERANJANG TERHADAP STOK (PPL-11)
+	// ==========================================
+
+	handlerValidasiKeranjang := &validasikeranjang.HandlerValidasiKeranjang{
+		DB: db,
+	}
+
+	http.HandleFunc(
+		"/api/keranjang/validasi",
+		handlerValidasiKeranjang.HandlerValidasiKeranjang,
+	)
+	http.HandleFunc(
+		"/api/keranjang/validasi-stok",
+		handlerValidasiKeranjang.HandlerValidasiKeranjang,
 	)
 
 	// ==========================================

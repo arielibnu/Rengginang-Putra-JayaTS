@@ -13,6 +13,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import CatalogPlaceholder from './pages/CatalogPlaceholder';
 import KatalogProduk from './pages/KatalogProduk';
+import KeranjangBelanja from './pages/KeranjangBelanja';
 import Checkout from './pages/Checkout';
 import ContactModal from './components/ContactModal';
 import LoginInfoModal from './components/LoginInfoModal';
@@ -206,13 +207,19 @@ function AppContent() {
           element={<KatalogProduk />}
         />
 
+        {/* PPL-11: Keranjang Belanja */}
+        <Route
+          path="/keranjang"
+          element={<KeranjangBelanja />}
+        />
+        <Route
+          path="/cart"
+          element={<KeranjangBelanja />}
+        />
+
         {/* PPL-12: Checkout Tanpa Wajib Login */}
         <Route
           path="/checkout"
-          element={<Checkout />}
-        />
-        <Route
-          path="/keranjang"
           element={<Checkout />}
         />
 

@@ -259,7 +259,7 @@ export default function Checkout() {
           </Link>
           <span style={{ margin: '0 0.5rem' }}>/</span>
           <Link
-            to="/katalog"
+            to="/keranjang"
             style={{ color: '#8E7D73', textDecoration: 'none', transition: 'color 0.2s' }}
             onMouseEnter={(e) => (e.target.style.color = '#43281C')}
             onMouseLeave={(e) => (e.target.style.color = '#8E7D73')}
