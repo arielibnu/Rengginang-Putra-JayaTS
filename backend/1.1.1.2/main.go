@@ -17,6 +17,7 @@ import (
 	katalogapi "rengginang-putra-jaya/auth/1.1.8.2"
 	ketersediaanproduk "rengginang-putra-jaya/auth/1.1.9.3"
 	kuotastok "rengginang-putra-jaya/auth/1.2.1.3"
+	checkoutapi "rengginang-putra-jaya/auth/1.2.3.3"
 )
 
 func main() {
@@ -407,6 +408,32 @@ func main() {
 	http.HandleFunc(
 		"/api/katalog/validasi-beli",
 		handlerKuota.HandlerCekKuotaRealtime,
+	)
+
+	// ==========================================
+	// WBS 1.2.3.3 - PENYAMAAN FORMAT PAYLOAD CHECKOUT (PPL-12)
+	// ==========================================
+
+	handlerCheckout := &checkoutapi.HandlerCheckout{
+		DB: db,
+	}
+
+	// POST /api/checkout (Order Request Standar Guest & Pelanggan)
+	http.HandleFunc(
+		"/api/checkout",
+		handlerCheckout.HandlerProsesCheckout,
+	)
+
+	// POST /api/checkout/proses (Alias endpoint pemrosesan pesanan)
+	http.HandleFunc(
+		"/api/checkout/proses",
+		handlerCheckout.HandlerProsesCheckout,
+	)
+
+	// GET /api/checkout/skema (Spesifikasi skema format payload order request)
+	http.HandleFunc(
+		"/api/checkout/skema",
+		handlerCheckout.HandlerSkemaPayload,
 	)
 
 	// ==========================================

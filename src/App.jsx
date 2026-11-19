@@ -13,6 +13,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import CatalogPlaceholder from './pages/CatalogPlaceholder';
 import KatalogProduk from './pages/KatalogProduk';
+import Checkout from './pages/Checkout';
 import ContactModal from './components/ContactModal';
 import LoginInfoModal from './components/LoginInfoModal';
 
@@ -203,6 +204,16 @@ function AppContent() {
         <Route
           path="/produk/:id"
           element={<KatalogProduk />}
+        />
+
+        {/* PPL-12: Checkout Tanpa Wajib Login */}
+        <Route
+          path="/checkout"
+          element={<Checkout />}
+        />
+        <Route
+          path="/keranjang"
+          element={<Checkout />}
         />
 
         {/* Login pelanggan PPL-02 */}
