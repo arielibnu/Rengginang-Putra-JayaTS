@@ -133,11 +133,12 @@ export default function Navbar({ onOpenContact }) {
             </li>
           </ul>
 
-          {/* Login Pelanggan / Akun Saya */}
-          {isLoggedIn ? (
+          {/* Login Pelanggan / Akun Saya (PPL-12: Menyesuaikan tombol Masuk (opsional) pada Checkout) */}
+          {((isLoggedIn || location.search.includes('status=login')) && !location.search.includes('status=guest')) ? (
             <Link
               to="/akun"
               className="btn-login-outline"
+              style={location.pathname === '/checkout' ? { borderRadius: '9999px', padding: '0.45rem 1.4rem' } : {}}
             >
               Akun Saya
             </Link>
@@ -145,8 +146,9 @@ export default function Navbar({ onOpenContact }) {
             <Link
               to="/masuk"
               className="btn-login-outline"
+              style={location.pathname === '/checkout' ? { borderRadius: '9999px', padding: '0.45rem 1.4rem' } : {}}
             >
-              Masuk
+              {location.pathname === '/checkout' ? 'Masuk (opsional)' : 'Masuk'}
             </Link>
           )}
         </div>
