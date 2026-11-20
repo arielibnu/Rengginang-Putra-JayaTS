@@ -20,6 +20,7 @@ import (
 	statemanager "rengginang-putra-jaya/auth/1.2.2.2"
 	validasikeranjang "rengginang-putra-jaya/auth/1.2.2.4"
 	checkoutapi "rengginang-putra-jaya/auth/1.2.3.3"
+	validasiwilayah "rengginang-putra-jaya/auth/1.2.6.3"
 )
 
 func main() {
@@ -478,6 +479,38 @@ func main() {
 	http.HandleFunc(
 		"/api/checkout/skema",
 		handlerCheckout.HandlerSkemaPayload,
+	)
+
+	// ==========================================
+	// WBS 1.2.6.3 - VALIDASI WILAYAH & ALAMAT PENGIRIMAN SESUAI KEBUTUHAN API KURIR (PPL-15)
+	// ==========================================
+
+	handlerWilayah := &validasiwilayah.HandlerValidasiWilayah{
+		DB: db,
+	}
+
+	// POST /api/checkout/wilayah-pengiriman (Endpoint integrasi Frontend Checkout PPL-15)
+	http.HandleFunc(
+		"/api/checkout/wilayah-pengiriman",
+		handlerWilayah.HandlerSimpanDanValidasiWilayah,
+	)
+
+	// POST /api/checkout/validasi-alamat (Endpoint validasi data geografis kurir)
+	http.HandleFunc(
+		"/api/checkout/validasi-alamat",
+		handlerWilayah.HandlerValidasiAlamatKurir,
+	)
+
+	// GET /api/checkout/master-wilayah (Master data dropdown bertingkat provinsi -> kota -> kecamatan)
+	http.HandleFunc(
+		"/api/checkout/master-wilayah",
+		handlerWilayah.HandlerMasterWilayah,
+	)
+
+	// GET /api/checkout/parameter-kurir (Skema parameter kebutuhan API kurir)
+	http.HandleFunc(
+		"/api/checkout/parameter-kurir",
+		handlerWilayah.HandlerParameterKurir,
 	)
 
 	// ==========================================
