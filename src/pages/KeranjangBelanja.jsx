@@ -125,26 +125,6 @@ export default function KeranjangBelanja() {
     setPesanPeringatan('');
   };
 
-  // Preset Pengujian Cepat untuk Reviewer/Dosen (PPL11_01 vs PPL11_02 vs Kosong)
-  const handleTerapkanPreset = (mode) => {
-    setPesanPeringatan('');
-    if (mode === 'ppl11_01') {
-      // Kondisi PPL11_01: Udang 2, Bawang 1 (Total Rp84.000)
-      setItems([
-        { ...DEFAULT_ITEMS[0], jumlah: 2 },
-        { ...DEFAULT_ITEMS[1], jumlah: 1 }
-      ]);
-    } else if (mode === 'ppl11_02') {
-      // Kondisi PPL11_02: Udang 3, Bawang 1 (Total Rp112.000)
-      setItems([
-        { ...DEFAULT_ITEMS[0], jumlah: 3 },
-        { ...DEFAULT_ITEMS[1], jumlah: 1 }
-      ]);
-    } else if (mode === 'kosong') {
-      setItems([]);
-    }
-  };
-
   // Kalkulasi Total dan Subtotal (WBS 1.2.2.3)
   const totalSubtotal = items.reduce((acc, curr) => acc + curr.harga * curr.jumlah, 0);
   const totalJumlahItem = items.reduce((acc, curr) => acc + curr.jumlah, 0);
@@ -165,95 +145,6 @@ export default function KeranjangBelanja() {
   return (
     <div style={{ backgroundColor: '#FAF8F5', minHeight: '90vh', paddingBottom: '5rem' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-
-        {/* ======================================================================
-            TOOLBAR PENGUJIAN REVIEWER / DOSEN (PPL11_01 & PPL11_02)
-            Memudahkan presentasi bahwa halaman ini 100% dinamis dalam 1 halaman
-            ====================================================================== */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: '#FFFFFF',
-            border: '1px solid #ECE4D9',
-            borderRadius: '12px',
-            padding: '0.75rem 1.25rem',
-            marginBottom: '1.75rem',
-            boxShadow: '0 1px 3px rgba(67, 40, 28, 0.04)',
-            flexWrap: 'wrap',
-            gap: '0.75rem'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
-            <span
-              style={{
-                backgroundColor: '#43281C',
-                color: '#FFFFFF',
-                padding: '0.2rem 0.5rem',
-                borderRadius: '6px',
-                fontWeight: 700,
-                fontSize: '0.75rem'
-              }}
-            >
-              WBS 1.2.2 (PPL-11)
-            </span>
-            <span style={{ color: '#6B5E55', fontWeight: 600 }}>
-              Pratinjau Interaksi Dinamis Stepper & Subtotal:
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => handleTerapkanPreset('ppl11_01')}
-              style={{
-                padding: '0.35rem 0.85rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                borderRadius: '8px',
-                cursor: 'pointer',
-                border: '1px solid #D8C7B8',
-                backgroundColor: items.length === 2 && items[0]?.jumlah === 2 ? '#FAF5EE' : '#FFFFFF',
-                color: '#43281C'
-              }}
-            >
-              Preset PPL11_01 (Udang: 2)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTerapkanPreset('ppl11_02')}
-              style={{
-                padding: '0.35rem 0.85rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                borderRadius: '8px',
-                cursor: 'pointer',
-                border: '1px solid #D8C7B8',
-                backgroundColor: items.length === 2 && items[0]?.jumlah === 3 ? '#FAF5EE' : '#FFFFFF',
-                color: '#43281C'
-              }}
-            >
-              Preset PPL11_02 (Udang: 3)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTerapkanPreset('kosong')}
-              style={{
-                padding: '0.35rem 0.85rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                borderRadius: '8px',
-                cursor: 'pointer',
-                border: '1px solid #D8C7B8',
-                backgroundColor: items.length === 0 ? '#FAF5EE' : '#FFFFFF',
-                color: '#8E7D73'
-              }}
-            >
-              Uji Keranjang Kosong
-            </button>
-          </div>
-        </div>
 
         {/* ======================================================================
             BREADCRUMB SESUAI FIGMA (Beranda / Keranjang)
