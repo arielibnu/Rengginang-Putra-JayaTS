@@ -24,7 +24,7 @@ func hubungkanDatabase() error {
 	namaDatabase := os.Getenv("DB_NAME")
 
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		"%s:%s@tcp(%s:%s)/%s?parseTime=true&timeout=2s",
 		pengguna, kataSandi, host, port, namaDatabase,
 	)
 
