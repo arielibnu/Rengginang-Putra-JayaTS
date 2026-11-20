@@ -394,7 +394,7 @@ export default function Checkout() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+            gridTemplateColumns: 'minmax(0, 1.45fr) minmax(360px, 1fr)',
             gap: '2rem',
             alignItems: 'start'
           }}
@@ -431,7 +431,7 @@ export default function Checkout() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gridTemplateColumns: '1fr 1fr',
                   gap: '1rem',
                   backgroundColor: '#FFFFFF',
                   border: '1px solid #EFE8DF',
@@ -697,7 +697,7 @@ export default function Checkout() {
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                      gridTemplateColumns: '1fr 1fr',
                       gap: '1.25rem',
                       marginBottom: '1.25rem'
                     }}
@@ -959,7 +959,7 @@ export default function Checkout() {
                           ✓ Alamat sudah lengkap
                         </div>
                         <div style={{ fontSize: '0.825rem', color: '#2E7D32' }}>
-                          Wilayah siap dikirim untuk pengecekan ongkir pada PPL-16.
+                          Wilayah siap dikirim untuk pengecekan ongkir.
                         </div>
                       </div>
                     ) : isFormIncomplete ? (
