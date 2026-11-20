@@ -881,7 +881,6 @@ export default function Checkout() {
                         type="text"
                         value={kodePos}
                         onChange={(e) => setKodePos(e.target.value)}
-                        placeholder="Contoh: 61211"
                         style={{
                           width: '100%',
                           padding: '0.85rem 1.15rem',
