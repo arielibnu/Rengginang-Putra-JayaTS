@@ -21,6 +21,8 @@ import (
 	validasikeranjang "rengginang-putra-jaya/auth/1.2.2.4"
 	checkoutapi "rengginang-putra-jaya/auth/1.2.3.3"
 	validasiwilayah "rengginang-putra-jaya/auth/1.2.6.3"
+	gatewayongkir "rengginang-putra-jaya/auth/1.2.7.2"
+	errorhandlingkurir "rengginang-putra-jaya/auth/1.2.7.4"
 )
 
 func main() {
@@ -511,6 +513,68 @@ func main() {
 	http.HandleFunc(
 		"/api/checkout/parameter-kurir",
 		handlerWilayah.HandlerParameterKurir,
+	)
+
+	// ==========================================
+	// WBS 1.2.7.2 - SERVICE GATEWAY API ONGKIR SANDBOX BERDASARKAN BERAT (PPL-16)
+	// ==========================================
+
+	handlerOngkir := &gatewayongkir.HandlerGatewayOngkir{
+		DB: db,
+	}
+
+	// POST /api/kurir/hitung-ongkir (Endpoint utama hitung ongkir kurir sandbox berdasar berat)
+	http.HandleFunc(
+		"/api/kurir/hitung-ongkir",
+		handlerOngkir.HandlerHitungOngkir,
+	)
+	http.HandleFunc(
+		"/api/checkout/hitung-ongkir",
+		handlerOngkir.HandlerHitungOngkir,
+	)
+
+	// GET /api/kurir/daftar-ekspedisi (Daftar opsi kurir mitra: JNE, J&T, SiCepat)
+	http.HandleFunc(
+		"/api/kurir/daftar-ekspedisi",
+		handlerOngkir.HandlerDaftarEkspedisi,
+	)
+
+	// POST /api/kurir/pilih-layanan (Menyimpan kurir yang dipilih user ke database saat 'Gunakan layanan')
+	http.HandleFunc(
+		"/api/kurir/pilih-layanan",
+		handlerOngkir.HandlerPilihKurir,
+	)
+
+	// GET /api/kurir/riwayat (Riwayat audit kalkulasi ongkos kirim)
+	http.HandleFunc(
+		"/api/kurir/riwayat",
+		handlerOngkir.HandlerRiwayatKalkulasi,
+	)
+
+	// ==========================================
+	// WBS 1.2.7.4 - ERROR HANDLING KONEKSI API KURIR & RUTE TANPA ESTIMASI PALSU (PPL-16)
+	// ==========================================
+
+	handlerErrorKurir := &errorhandlingkurir.HandlerErrorKurir{
+		DB: db,
+	}
+
+	// POST /api/kurir/simulasi-error (Simulasi kegagalan API kurir sesuai Gambar 2)
+	http.HandleFunc(
+		"/api/kurir/simulasi-error",
+		handlerErrorKurir.HandlerSimulasiError,
+	)
+
+	// POST /api/kurir/cek-jangkauan (Pemeriksaan keterjangkauan rute pengiriman)
+	http.HandleFunc(
+		"/api/kurir/cek-jangkauan",
+		handlerErrorKurir.HandlerCekJangkauan,
+	)
+
+	// GET /api/kurir/log-error (Audit log insiden kegagalan koneksi API kurir)
+	http.HandleFunc(
+		"/api/kurir/log-error",
+		handlerErrorKurir.HandlerLogKegagalan,
 	)
 
 	// ==========================================
