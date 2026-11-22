@@ -143,8 +143,9 @@ func ValidasiOrder(req *PermintaanValidasiOrder) *HasilValidasiOrder {
 	}
 
 	waBersih := strings.TrimSpace(req.Kontak.NomorWhatsApp)
-	if waBersih == "" {
-		waBersih = "081234567890" // default fallback
+	if waBersih == "" || strings.Contains(strings.ToLower(waBersih), "x") {
+		waBersih = "081234567890" // default fallback untuk placeholder Figma 08xx-xxxx-xxxx
+		req.Kontak.NomorWhatsApp = waBersih
 	}
 
 	// Validasi pola nomor WhatsApp Indonesia (minimal 9 digit angka)
@@ -410,6 +411,7 @@ func (h *HandlerValidatorOrder) SimpanPesananMySQL(req *PermintaanValidasiOrder,
 				}
 				_ = tx.Commit()
 			} else {
+				fmt.Println("Gagal insert pesanan_checkout MySQL:", err)
 				_ = tx.Rollback()
 			}
 		}

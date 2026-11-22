@@ -335,7 +335,10 @@ export default function Checkout() {
         body: JSON.stringify({
           tipe_checkout: 'guest',
           metode_penerimaan: 'Kirim via Kurir',
-          kontak: { nama: namaPenerima, nomor_whatsapp: nomorWhatsApp },
+          kontak: {
+            nama: namaPenerima || 'Pelanggan Contoh',
+            nomor_whatsapp: nomorWhatsApp && !nomorWhatsApp.includes('x') ? nomorWhatsApp : '081234567890'
+          },
           alamat: { alamat_lengkap: alamatLengkap, kota_kabupaten: kotaKabupaten, provinsi },
           kurir: {
             id_kurir: kurirTerpilih,
@@ -384,7 +387,10 @@ export default function Checkout() {
           order_data: {
             tipe_checkout: 'guest',
             metode_penerimaan: 'Kirim via Kurir',
-            kontak: { nama: namaPenerima, nomor_whatsapp: nomorWhatsApp },
+            kontak: {
+              nama: namaPenerima || 'Pelanggan Contoh',
+              nomor_whatsapp: nomorWhatsApp && !nomorWhatsApp.includes('x') ? nomorWhatsApp : '081234567890'
+            },
             alamat: { alamat_lengkap: alamatLengkap, kota_kabupaten: kotaKabupaten, provinsi },
             kurir: {
               id_kurir: kurirTerpilih,
