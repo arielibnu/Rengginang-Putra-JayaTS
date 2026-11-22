@@ -24,6 +24,8 @@ import (
 	gatewayongkir "rengginang-putra-jaya/auth/1.2.7.2"
 	errorhandlingkurir "rengginang-putra-jaya/auth/1.2.7.4"
 	validatororder "rengginang-putra-jaya/auth/1.2.8.3"
+	ordergenerator "rengginang-putra-jaya/auth/1.2.9.1"
+	reservasisstok "rengginang-putra-jaya/auth/1.2.9.2"
 )
 
 func main() {
@@ -607,6 +609,39 @@ func main() {
 	http.HandleFunc(
 		"/api/checkout/audit-validasi",
 		handlerValidatorOrder.HandlerRiwayatValidasi,
+	)
+
+	// ==========================================
+	// WBS 1.2.9 - PEMBUATAN PESANAN DAN RESERVASI STOK (PPL-18)
+	// ==========================================
+
+	generatorOrder := &ordergenerator.GeneratorOrder{
+		DB: db,
+	}
+	generatorOrder.InisialisasiTabel()
+
+	handlerReservasiStok := &reservasisstok.HandlerReservasiStok{
+		DB:        db,
+		Generator: generatorOrder,
+	}
+	handlerReservasiStok.InisialisasiTabel()
+
+	// POST /api/pesanan/buat (Pembuatan pesanan resmi, snapshot harga, dan penahanan stok 24 jam)
+	http.HandleFunc(
+		"/api/pesanan/buat",
+		handlerReservasiStok.HandlerBuatPesanan,
+	)
+
+	// GET /api/pesanan/detail (Detail pesanan asli untuk Halaman Konfirmasi PPL-18 & tracking)
+	http.HandleFunc(
+		"/api/pesanan/detail",
+		handlerReservasiStok.HandlerDetailPesanan,
+	)
+
+	// GET /api/pesanan/reservasi (Audit list kuota stok yang sedang ditahan)
+	http.HandleFunc(
+		"/api/pesanan/reservasi",
+		handlerReservasiStok.HandlerDaftarReservasi,
 	)
 
 	// ==========================================
