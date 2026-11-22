@@ -15,6 +15,7 @@ import CatalogPlaceholder from './pages/CatalogPlaceholder';
 import KatalogProduk from './pages/KatalogProduk';
 import KeranjangBelanja from './pages/KeranjangBelanja';
 import Checkout from './pages/Checkout';
+import KonfirmasiPesanan from './pages/KonfirmasiPesanan';
 import ContactModal from './components/ContactModal';
 import LoginInfoModal from './components/LoginInfoModal';
 
@@ -221,6 +222,20 @@ function AppContent() {
         <Route
           path="/checkout"
           element={<Checkout />}
+        />
+
+        {/* PPL-18: Konfirmasi Pesanan dan Reservasi Stok */}
+        <Route
+          path="/konfirmasi-pesanan"
+          element={<KonfirmasiPesanan />}
+        />
+        <Route
+          path="/pesanan-berhasil"
+          element={<KonfirmasiPesanan />}
+        />
+        <Route
+          path="/checkout/konfirmasi"
+          element={<KonfirmasiPesanan />}
         />
 
         {/* Login pelanggan PPL-02 */}

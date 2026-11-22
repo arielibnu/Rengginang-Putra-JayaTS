@@ -73,6 +73,8 @@ export default function Checkout() {
   const [statusValidasi, setStatusValidasi] = useState('valid');
   const [tokenValidasi, setTokenValidasi] = useState('');
   const [pesanPeringatanValidasi, setPesanPeringatanValidasi] = useState('Tarif ongkir belum terverifikasi oleh sistem.');
+  const [isMemprosesOrder, setIsMemprosesOrder] = useState(false);
+  const [errorOrder, setErrorOrder] = useState('');
 
   // Kurir terpilih: 'jne' | 'jnt' | 'sicepat' (Default: 'jne' sesuai Gambar 1)
   const [kurirTerpilih, setKurirTerpilih] = useState('jne');
@@ -372,58 +374,124 @@ export default function Checkout() {
     setStatusValidasi('valid');
   };
 
-  // Handler Gambar 1 PPL-17: Tombol Buat Pesanan (WBS 1.2.8.2 & 1.2.8.3 Server-Side Order Validator)
+  // Handler Gambar 1 PPL-17: Tombol Buat Pesanan (WBS 1.2.8.2 & Integrasi PPL-18)
   const handleBuatPesanan = async () => {
+    if (isMemprosesOrder) return;
+    setIsMemprosesOrder(true);
+    setErrorOrder('');
+
     const kurir = daftarKurir.find((k) => k.id === kurirTerpilih);
     const ongkirNominal = kurirTerpilih === 'jnt' ? 34000 : kurirTerpilih === 'sicepat' ? 38000 : 36000;
-    let nomorPesananHasil = 'PJ-20261122-01';
+
+    const payloadPesanan = {
+      tipe_checkout: 'guest',
+      metode_penerimaan: 'Kirim via Kurir',
+      token_validasi: tokenValidasi || 'token-terverifikasi-server',
+      kontak: {
+        nama_penerima: namaPenerima || 'Pelanggan Contoh',
+        nomor_whatsapp: nomorWhatsApp && !nomorWhatsApp.includes('x') ? nomorWhatsApp : '081234567890',
+        alamat_lengkap: alamatLengkap || 'Jl. Contoh No. 12',
+        kota_kabupaten: kotaKabupaten || 'Kabupaten Jember',
+        provinsi: provinsi || 'Jawa Timur',
+        kode_pos: kodePos || '68131'
+      },
+      kurir: {
+        id_kurir: kurirTerpilih,
+        nama_kurir: kurir?.nama || 'JNE REG',
+        kode_layanan: 'REG',
+        tarif_ongkir: ongkirNominal,
+        estimasi_hari: kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari',
+        terverifikasi_api: true
+      },
+      items: [
+        {
+          id_varian: 1,
+          id_produk: 'prod-1',
+          nama_produk: 'Rengginang Udang',
+          nama_varian: 'Udang Gurih',
+          jumlah: 2,
+          harga_satuan_snapshot: 28000,
+          subtotal_snapshot: 56000,
+          berat_satuan_gram: 500
+        },
+        {
+          id_varian: 2,
+          id_produk: 'prod-2',
+          nama_produk: 'Rengginang Bawang',
+          nama_varian: 'Bawang Renyah',
+          jumlah: 1,
+          harga_satuan_snapshot: 28000,
+          subtotal_snapshot: 28000,
+          berat_satuan_gram: 350
+        }
+      ]
+    };
 
     try {
-      const res = await fetch(`${API_URL}/api/checkout/buat-pesanan`, {
+      // 1. Panggil endpoint pembuatan pesanan & reservasi stok WBS 1.2.9
+      const res = await fetch(`${API_URL}/api/pesanan/buat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token_validasi: tokenValidasi || 'token-terverifikasi-server',
-          order_data: {
-            tipe_checkout: 'guest',
-            metode_penerimaan: 'Kirim via Kurir',
-            kontak: {
-              nama: namaPenerima || 'Pelanggan Contoh',
-              nomor_whatsapp: nomorWhatsApp && !nomorWhatsApp.includes('x') ? nomorWhatsApp : '081234567890'
-            },
-            alamat: { alamat_lengkap: alamatLengkap, kota_kabupaten: kotaKabupaten, provinsi },
-            kurir: {
-              id_kurir: kurirTerpilih,
-              nama_kurir: kurir?.nama || 'JNE REG',
-              kode_layanan: 'REG',
-              tarif_ongkir: ongkirNominal,
-              estimasi_hari: kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari',
-              terverifikasi_api: true
-            },
-            items: [
-              { id_produk: 'prod-1', nama_produk: 'Rengginang Udang', jumlah: 2, harga_satuan: 28000, subtotal: 56000 },
-              { id_produk: 'prod-2', nama_produk: 'Rengginang Bawang', jumlah: 1, harga_satuan: 28000, subtotal: 28000 }
-            ],
-            ringkasan_klien: {
-              subtotal: 84000,
-              ongkos_kirim: ongkirNominal,
-              total_akhir: 84000 + ongkirNominal
-            }
-          }
-        })
+        body: JSON.stringify(payloadPesanan)
       });
+
       const data = await res.json();
-      if (data?.nomor_pesanan) {
-        nomorPesananHasil = data.nomor_pesanan;
+
+      // Penanganan jika stok tidak mencukupi
+      if (res.status === 409 || data.status === 'gagal' || data.kode === 'STOK_TIDAK_CUKUP') {
+        setErrorOrder(data.pesan || 'Stok produk tidak mencukupi untuk membuat pesanan.');
+        setIsMemprosesOrder(false);
+        return;
+      }
+
+      if (res.ok && data.nomor_pesanan) {
+        // Tampilkan feedback notifikasi sesaat
+        setNotifikasiLayanan(`Pesanan berhasil dibuat! Nomor pesanan: ${data.nomor_pesanan}. Mengarahkan ke halaman konfirmasi...`);
+
+        // Setelah backend mengonfirmasi keberhasilan transaksi, arahkan pelanggan ke halaman PPL-18
+        setTimeout(() => {
+          navigate('/konfirmasi-pesanan', {
+            state: {
+              pesananData: data
+            }
+          });
+        }, 800);
+        return;
+      } else {
+        setErrorOrder(data.pesan || 'Gagal memproses pesanan di backend.');
       }
     } catch {
-      // Fallback
+      // Fallback cadangan jika koneksi endpoint baru bermasalah
+      try {
+        const resFallback = await fetch(`${API_URL}/api/checkout/buat-pesanan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token_validasi: tokenValidasi || 'token-terverifikasi-server',
+            order_data: payloadPesanan
+          })
+        });
+        const dataFb = await resFallback.json();
+        if (dataFb?.nomor_pesanan) {
+          navigate('/konfirmasi-pesanan', {
+            state: {
+              pesananData: {
+                nomor_pesanan: dataFb.nomor_pesanan,
+                status_pesanan: 'menunggu_pembayaran',
+                status_pesanan_label: 'Menunggu pembayaran',
+                total_pembayaran_format: dataFb.total_pembayaran_format || 'Rp120.000',
+                penerima: namaPenerima || 'Pelanggan Contoh'
+              }
+            }
+          });
+          return;
+        }
+      } catch {
+        setErrorOrder('Tidak dapat terhubung ke server backend. Periksa koneksi backend Anda.');
+      }
+    } finally {
+      setIsMemprosesOrder(false);
     }
-
-    setNotifikasiLayanan(`Pesanan berhasil dibuat! Nomor pesanan: ${nomorPesananHasil}. Melanjutkan ke proses pembayaran.`);
-    setTimeout(() => {
-      setNotifikasiLayanan('');
-    }, 5000);
   };
 
   return (
@@ -644,12 +712,31 @@ export default function Checkout() {
                     </p>
                   </div>
 
+                  {/* PESAN KESALAHAN JIKA STOK TIDAK CUKUP ATAU SERVER ERROR */}
+                  {errorOrder && (
+                    <div
+                      style={{
+                        backgroundColor: '#FDF2F2',
+                        border: '1px solid #FEE2E2',
+                        borderRadius: '10px',
+                        padding: '0.85rem 1.15rem',
+                        marginBottom: '1.25rem',
+                        color: '#B91C1C',
+                        fontSize: '0.875rem',
+                        lineHeight: 1.5
+                      }}
+                    >
+                      {errorOrder}
+                    </div>
+                  )}
+
                   <div>
                     <button
                       type="button"
                       onClick={handleBuatPesanan}
+                      disabled={isMemprosesOrder}
                       style={{
-                        backgroundColor: '#43281C',
+                        backgroundColor: isMemprosesOrder ? '#8C7B73' : '#43281C',
                         color: '#FFFFFF',
                         border: 'none',
                         borderRadius: '10px',
@@ -657,11 +744,12 @@ export default function Checkout() {
                         width: '100%',
                         fontWeight: 700,
                         fontSize: '0.95rem',
-                        cursor: 'pointer',
-                        textAlign: 'center'
+                        cursor: isMemprosesOrder ? 'not-allowed' : 'pointer',
+                        textAlign: 'center',
+                        transition: 'background-color 0.2s'
                       }}
                     >
-                      Buat Pesanan
+                      {isMemprosesOrder ? 'Memproses pesanan & reservasi stok...' : 'Buat Pesanan'}
                     </button>
                   </div>
                 </div>
