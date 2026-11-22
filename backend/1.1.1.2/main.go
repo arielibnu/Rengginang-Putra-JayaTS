@@ -23,6 +23,7 @@ import (
 	validasiwilayah "rengginang-putra-jaya/auth/1.2.6.3"
 	gatewayongkir "rengginang-putra-jaya/auth/1.2.7.2"
 	errorhandlingkurir "rengginang-putra-jaya/auth/1.2.7.4"
+	validatororder "rengginang-putra-jaya/auth/1.2.8.3"
 )
 
 func main() {
@@ -575,6 +576,37 @@ func main() {
 	http.HandleFunc(
 		"/api/kurir/log-error",
 		handlerErrorKurir.HandlerLogKegagalan,
+	)
+
+	// ==========================================
+	// WBS 1.2.8.3 - VALIDASI KETAT INTEGRITAS SUBTOTAL, ONGKIR, TOTAL NOMINAL (PPL-17)
+	// ==========================================
+
+	handlerValidatorOrder := &validatororder.HandlerValidatorOrder{
+		DB: db,
+	}
+	handlerValidatorOrder.InisialisasiTabel()
+
+	// POST /api/checkout/validasi-ringkasan (Server-side Order Validator)
+	http.HandleFunc(
+		"/api/checkout/validasi-ringkasan",
+		handlerValidatorOrder.HandlerValidasiRingkasan,
+	)
+	http.HandleFunc(
+		"/api/checkout/validasi-order",
+		handlerValidatorOrder.HandlerValidasiRingkasan,
+	)
+
+	// POST /api/checkout/buat-pesanan (Eksekusi pesanan final setelah validasi integritas)
+	http.HandleFunc(
+		"/api/checkout/buat-pesanan",
+		handlerValidatorOrder.HandlerBuatPesanan,
+	)
+
+	// GET /api/checkout/audit-validasi (Audit log integritas validasi order)
+	http.HandleFunc(
+		"/api/checkout/audit-validasi",
+		handlerValidatorOrder.HandlerRiwayatValidasi,
 	)
 
 	// ==========================================
