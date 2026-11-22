@@ -22,6 +22,10 @@ import LoginInfoModal from './components/LoginInfoModal';
 // PPL-06: Pencatatan Modal dan Pengeluaran Usaha
 import ModalBiaya from './pages/ModalBiaya';
 
+// PPL-21: Daftar dan Detail Pesanan Owner
+import DaftarPesananOwner from './pages/DaftarPesananOwner';
+import DetailPesananOwner from './pages/DetailPesananOwner';
+
 // PPL-01: Login Owner dan Dashboard
 import LoginOwner from './pages/LoginOwner';
 import OwnerDashboard from './pages/OwnerDashboard';
@@ -59,7 +63,9 @@ function AppContent() {
     location.pathname === '/login' ||
     location.pathname === '/login-owner' ||
     location.pathname === '/admin' ||
-    location.pathname.startsWith('/admin/');
+    location.pathname.startsWith('/admin/') ||
+    location.pathname === '/owner' ||
+    location.pathname.startsWith('/owner/');
 
   if (isOwnerPage) {
     return (
@@ -166,6 +172,24 @@ function AppContent() {
         <Route
           path="/admin/pengeluaran"
           element={<ModalBiaya />}
+        />
+
+        {/* PPL-21: Daftar dan Detail Pesanan Owner */}
+        <Route
+          path="/admin/pesanan"
+          element={<DaftarPesananOwner />}
+        />
+        <Route
+          path="/admin/pesanan/:id"
+          element={<DetailPesananOwner />}
+        />
+        <Route
+          path="/owner/pesanan"
+          element={<DaftarPesananOwner />}
+        />
+        <Route
+          path="/owner/pesanan/:id"
+          element={<DetailPesananOwner />}
         />
       </Routes>
     );

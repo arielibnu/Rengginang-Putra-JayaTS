@@ -26,6 +26,7 @@ import (
 	validatororder "rengginang-putra-jaya/auth/1.2.8.3"
 	ordergenerator "rengginang-putra-jaya/auth/1.2.9.1"
 	reservasisstok "rengginang-putra-jaya/auth/1.2.9.2"
+	pesananowner "rengginang-putra-jaya/auth/1.2.10.2"
 )
 
 func main() {
@@ -642,6 +643,30 @@ func main() {
 	http.HandleFunc(
 		"/api/pesanan/reservasi",
 		handlerReservasiStok.HandlerDaftarReservasi,
+	)
+
+	// ==========================================
+	// WBS 1.2.10.2 - DAFTAR & DETAIL PESANAN OWNER (PPL-21)
+	// ==========================================
+
+	layananPesananOwner := pesananowner.InisialisasiLayanan(db)
+
+	// GET /api/admin/pesanan (Daftar antrean pesanan masuk dengan filter status, tanggal, dan pencarian)
+	http.HandleFunc(
+		"/api/admin/pesanan",
+		layananPesananOwner.HandlerDaftarPesanan,
+	)
+
+	// GET /api/admin/pesanan/detail (Rincian pesanan pembeli dan snapshot barang)
+	http.HandleFunc(
+		"/api/admin/pesanan/detail",
+		layananPesananOwner.HandlerDetailPesanan,
+	)
+
+	// PUT / POST /api/admin/pesanan/status (Pembaruan status pemrosesan pesanan)
+	http.HandleFunc(
+		"/api/admin/pesanan/status",
+		layananPesananOwner.HandlerUpdateStatusPesanan,
 	)
 
 	// ==========================================
