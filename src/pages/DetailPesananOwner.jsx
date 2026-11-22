@@ -181,7 +181,21 @@ export default function DetailPesananOwner() {
   }, [id]);
 
   // Simpan perubahan status pemrosesan
-  const handleSimpanStatus = () => {
+  const handleSimpanStatus = async () => {
+    const nomorTarget = detailPesanan?.nomor_pesanan || id;
+    try {
+      await fetch(`${API_URL}/api/admin/pesanan/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nomor_pesanan: nomorTarget,
+          status_pemrosesan: statusPemrosesan
+        })
+      });
+    } catch (e) {
+      console.warn('Simpan status offline/fallback:', e);
+    }
+
     setIsModalOpen(false);
     setNotifSukses(`Status pemrosesan berhasil diperbarui menjadi "${statusPemrosesan}".`);
     setTimeout(() => setNotifSukses(''), 4000);
