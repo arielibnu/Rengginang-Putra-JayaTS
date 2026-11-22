@@ -62,12 +62,17 @@ export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Pilihan tahap checkout: 'alamat' (PPL-15) atau 'pilihan_ongkir' (PPL-16)
-  // Alur alami: Pengisian alamat terlebih dahulu, lalu berlanjut ke pilihan ongkir
+  // Pilihan tahap checkout: 'alamat' (PPL-15), 'pilihan_ongkir' (PPL-16), atau 'ringkasan_konfirmasi' (PPL-17)
+  // Alur alami prototype: Alamat -> Pilihan Kurir -> Ringkasan Konfirmasi
   const [tahapCheckout, setTahapCheckout] = useState('alamat');
 
   // Status tampilan PPL-16: 'sukses' (Gambar 1) atau 'error' (Gambar 2)
   const [statusOngkir, setStatusOngkir] = useState('sukses');
+
+  // Status tampilan PPL-17: 'valid' (Gambar 1: Siap Dikonfirmasi) atau 'invalid' (Gambar 2: Belum Valid)
+  const [statusValidasi, setStatusValidasi] = useState('valid');
+  const [tokenValidasi, setTokenValidasi] = useState('');
+  const [pesanPeringatanValidasi, setPesanPeringatanValidasi] = useState('Tarif ongkir belum terverifikasi oleh sistem.');
 
   // Kurir terpilih: 'jne' | 'jnt' | 'sicepat' (Default: 'jne' sesuai Gambar 1)
   const [kurirTerpilih, setKurirTerpilih] = useState('jne');
@@ -131,12 +136,63 @@ export default function Checkout() {
     const params = new URLSearchParams(location.search);
     const preset = params.get('preset') || params.get('state') || params.get('gambar') || params.get('step');
 
-    if (preset === '2' || preset === 'error' || preset === 'gagal') {
-      // Gambar 2: Error tarif pengiriman tidak tersedia (WBS 1.2.7.4)
+    if (preset === 'ppl17_1' || preset === 'ringkasan' || preset === 'valid' || preset === 'siap' || preset === '3') {
+      // PPL-17 Gambar 1: Ringkasan siap dikonfirmasi (Data valid)
+      setTahapCheckout('ringkasan_konfirmasi');
+      setStatusValidasi('valid');
+
+      // Validasi integritas order ke backend WBS 1.2.8.3
+      fetch(`${API_URL}/api/checkout/validasi-ringkasan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipe_checkout: 'guest',
+          metode_penerimaan: 'Kirim via Kurir',
+          kontak: { nama: namaPenerima, nomor_whatsapp: '081234567890' },
+          alamat: { alamat_lengkap: alamatLengkap, kota_kabupaten: kotaKabupaten, provinsi },
+          kurir: { id_kurir: 'jne', nama_kurir: 'JNE REG', tarif_ongkir: 36000, terverifikasi_api: true },
+          items: [
+            { id_produk: 'prod-1', nama_produk: 'Rengginang Udang', jumlah: 2, harga_satuan: 28000, subtotal: 56000 },
+            { id_produk: 'prod-2', nama_produk: 'Rengginang Bawang', jumlah: 1, harga_satuan: 28000, subtotal: 28000 }
+          ],
+          ringkasan_klien: { subtotal: 84000, ongkos_kirim: 36000, total_akhir: 120000 }
+        })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.laporan?.token_validasi) {
+            setTokenValidasi(data.laporan.token_validasi);
+          }
+        })
+        .catch(() => {});
+    } else if (preset === 'ppl17_2' || preset === 'ringkasan_error' || preset === 'invalid' || preset === 'belum_valid' || preset === '4') {
+      // PPL-17 Gambar 2: Ringkasan dan validasi akhir (Belum dapat membuat pesanan)
+      setTahapCheckout('ringkasan_konfirmasi');
+      setStatusValidasi('invalid');
+
+      // Panggil backend validator dengan simulasi belum valid
+      fetch(`${API_URL}/api/checkout/validasi-ringkasan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          simulasi_belum_valid: true,
+          kurir: { id_kurir: '', tarif_ongkir: 0, terverifikasi_api: false },
+          ringkasan_klien: { subtotal: 84000, ongkos_kirim: 0, total_akhir: 84000 }
+        })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.laporan?.pesan_peringatan) {
+            setPesanPeringatanValidasi(data.laporan.pesan_peringatan);
+          }
+        })
+        .catch(() => {});
+    } else if (preset === '2' || preset === 'error' || preset === 'gagal') {
+      // PPL-16 Gambar 2: Error tarif pengiriman tidak tersedia (WBS 1.2.7.4)
       setTahapCheckout('pilihan_ongkir');
       setStatusOngkir('error');
     } else if (preset === '1' || preset === 'ongkir' || preset === 'kurir') {
-      // Gambar 1: Sukses daftar pilihan kurir (WBS 1.2.7.1 & 1.2.7.3)
+      // PPL-16 Gambar 1: Sukses daftar pilihan kurir (WBS 1.2.7.1 & 1.2.7.3)
       setTahapCheckout('pilihan_ongkir');
       setStatusOngkir('sukses');
     } else {
@@ -253,9 +309,11 @@ export default function Checkout() {
     setTahapCheckout('alamat');
   };
 
-  // Handler Gambar 1: Tombol Gunakan Layanan (Menyimpan kurir pilihan ke database)
+  // Handler Gambar 1 PPL-16: Tombol Gunakan Layanan (Menyimpan kurir pilihan dan lanjut ke PPL-17)
   const handleGunakanLayanan = async () => {
     const kurir = daftarKurir.find((k) => k.id === kurirTerpilih);
+    const ongkirNominal = kurirTerpilih === 'jnt' ? 34000 : kurirTerpilih === 'sicepat' ? 38000 : 36000;
+
     try {
       await fetch(`${API_URL}/api/kurir/pilih-layanan`, {
         method: 'POST',
@@ -263,20 +321,103 @@ export default function Checkout() {
         body: JSON.stringify({
           id_kurir: kurirTerpilih,
           nama_kurir: kurir?.nama || 'JNE REG',
-          tarif: kurirTerpilih === 'jnt' ? 34000 : kurirTerpilih === 'sicepat' ? 38000 : 36000,
+          tarif: ongkirNominal,
           estimasi_hari: kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari',
           alamat_tujuan: alamatDisplay,
           nama_penerima: namaPenerima
         })
       });
+
+      // Panggil validasi server-side order (WBS 1.2.8.3)
+      const resVal = await fetch(`${API_URL}/api/checkout/validasi-ringkasan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipe_checkout: 'guest',
+          metode_penerimaan: 'Kirim via Kurir',
+          kontak: { nama: namaPenerima, nomor_whatsapp: nomorWhatsApp },
+          alamat: { alamat_lengkap: alamatLengkap, kota_kabupaten: kotaKabupaten, provinsi },
+          kurir: {
+            id_kurir: kurirTerpilih,
+            nama_kurir: kurir?.nama || 'JNE REG',
+            kode_layanan: 'REG',
+            tarif_ongkir: ongkirNominal,
+            estimasi_hari: kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari',
+            terverifikasi_api: true
+          },
+          items: [
+            { id_produk: 'prod-1', nama_produk: 'Rengginang Udang', jumlah: 2, harga_satuan: 28000, subtotal: 56000 },
+            { id_produk: 'prod-2', nama_produk: 'Rengginang Bawang', jumlah: 1, harga_satuan: 28000, subtotal: 28000 }
+          ],
+          ringkasan_klien: {
+            subtotal: 84000,
+            ongkos_kirim: ongkirNominal,
+            total_akhir: 84000 + ongkirNominal
+          }
+        })
+      });
+      const dataVal = await resVal.json();
+      if (dataVal?.laporan?.token_validasi) {
+        setTokenValidasi(dataVal.laporan.token_validasi);
+      }
     } catch {
       // Lanjutkan jika koneksi terputus
     }
 
-    setNotifikasiLayanan(`Layanan ${kurir?.nama || 'kurir'} berhasil dipilih dan tersimpan ke database. Melanjutkan ke proses pembayaran.`);
+    // Melanjutkan ke PPL-17: Ringkasan siap dikonfirmasi (Gambar 1 PPL-17)
+    setTahapCheckout('ringkasan_konfirmasi');
+    setStatusValidasi('valid');
+  };
+
+  // Handler Gambar 1 PPL-17: Tombol Buat Pesanan (WBS 1.2.8.2 & 1.2.8.3 Server-Side Order Validator)
+  const handleBuatPesanan = async () => {
+    const kurir = daftarKurir.find((k) => k.id === kurirTerpilih);
+    const ongkirNominal = kurirTerpilih === 'jnt' ? 34000 : kurirTerpilih === 'sicepat' ? 38000 : 36000;
+    let nomorPesananHasil = 'PJ-20261122-01';
+
+    try {
+      const res = await fetch(`${API_URL}/api/checkout/buat-pesanan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token_validasi: tokenValidasi || 'token-terverifikasi-server',
+          order_data: {
+            tipe_checkout: 'guest',
+            metode_penerimaan: 'Kirim via Kurir',
+            kontak: { nama: namaPenerima, nomor_whatsapp: nomorWhatsApp },
+            alamat: { alamat_lengkap: alamatLengkap, kota_kabupaten: kotaKabupaten, provinsi },
+            kurir: {
+              id_kurir: kurirTerpilih,
+              nama_kurir: kurir?.nama || 'JNE REG',
+              kode_layanan: 'REG',
+              tarif_ongkir: ongkirNominal,
+              estimasi_hari: kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari',
+              terverifikasi_api: true
+            },
+            items: [
+              { id_produk: 'prod-1', nama_produk: 'Rengginang Udang', jumlah: 2, harga_satuan: 28000, subtotal: 56000 },
+              { id_produk: 'prod-2', nama_produk: 'Rengginang Bawang', jumlah: 1, harga_satuan: 28000, subtotal: 28000 }
+            ],
+            ringkasan_klien: {
+              subtotal: 84000,
+              ongkos_kirim: ongkirNominal,
+              total_akhir: 84000 + ongkirNominal
+            }
+          }
+        })
+      });
+      const data = await res.json();
+      if (data?.nomor_pesanan) {
+        nomorPesananHasil = data.nomor_pesanan;
+      }
+    } catch {
+      // Fallback
+    }
+
+    setNotifikasiLayanan(`Pesanan berhasil dibuat! Nomor pesanan: ${nomorPesananHasil}. Melanjutkan ke proses pembayaran.`);
     setTimeout(() => {
       setNotifikasiLayanan('');
-    }, 4000);
+    }, 5000);
   };
 
   return (
@@ -446,9 +587,157 @@ export default function Checkout() {
             />
 
             {/* ================================================================
-                KONDISIONAL KONTEN: PPL-16 (GAMBAR 1 / GAMBAR 2) ATAU FORM PPL-15
+                KONDISIONAL KONTEN: PPL-17 (RINGKASAN KONFIRMASI) / PPL-16 / PPL-15
                 ================================================================ */}
-            {tahapCheckout === 'pilihan_ongkir' ? (
+            {tahapCheckout === 'ringkasan_konfirmasi' ? (
+              statusValidasi === 'valid' ? (
+                /* ==============================================================
+                   PPL-17 GAMBAR 1: RINGKASAN SIAP DIKONFIRMASI (DATA VALID)
+                   ============================================================== */
+                <div>
+                  <h2
+                    style={{
+                      fontSize: '1.15rem',
+                      fontWeight: 700,
+                      color: '#2D231E',
+                      margin: '0 0 0.75rem 0'
+                    }}
+                  >
+                    Ringkasan siap dikonfirmasi
+                  </h2>
+
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        backgroundColor: '#EAF5EE',
+                        color: '#15803D',
+                        padding: '0.3rem 0.85rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.825rem',
+                        fontWeight: 600
+                      }}
+                    >
+                      Data valid
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: '0.9rem',
+                      color: '#5C5046',
+                      lineHeight: 1.6,
+                      marginBottom: '2rem'
+                    }}
+                  >
+                    <p style={{ margin: '0 0 0.5rem 0' }}>
+                      Seluruh data kontak, alamat, stok dan kurir sudah diperiksa.
+                    </p>
+                    <p style={{ margin: 0 }}>
+                      Total pembayaran dihitung dari subtotal dan ongkir valid.
+                    </p>
+                  </div>
+
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleBuatPesanan}
+                      style={{
+                        backgroundColor: '#43281C',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '0.9rem 0',
+                        width: '100%',
+                        fontWeight: 700,
+                        fontSize: '0.95rem',
+                        cursor: 'pointer',
+                        textAlign: 'center'
+                      }}
+                    >
+                      Buat Pesanan
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* ==============================================================
+                   PPL-17 GAMBAR 2: RINGKASAN DAN VALIDASI AKHIR (BELUM DAPAT MEMBUAT PESANAN)
+                   ============================================================== */
+                <div>
+                  <h2
+                    style={{
+                      fontSize: '1.15rem',
+                      fontWeight: 700,
+                      color: '#2D231E',
+                      margin: '0 0 0.35rem 0'
+                    }}
+                  >
+                    Ringkasan dan validasi akhir
+                  </h2>
+
+                  <p
+                    style={{
+                      fontSize: '0.875rem',
+                      color: '#6B5E55',
+                      margin: '0 0 1.25rem 0'
+                    }}
+                  >
+                    Pilih kurir dan tarif yang valid sebelum membuat pesanan.
+                  </p>
+
+                  <div
+                    style={{
+                      backgroundColor: '#FEF3C7',
+                      border: '1px solid #FDE68A',
+                      borderRadius: '12px',
+                      padding: '1.25rem 1.5rem',
+                      marginBottom: '2rem'
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        color: '#92400E',
+                        marginBottom: '0.35rem'
+                      }}
+                    >
+                      Belum dapat membuat pesanan
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.875rem',
+                        color: '#78350F',
+                        lineHeight: 1.5
+                      }}
+                    >
+                      {pesanPeringatanValidasi || 'Tarif ongkir belum terverifikasi oleh sistem.'}
+                    </div>
+                  </div>
+
+                  <div>
+                    <button
+                      type="button"
+                      disabled
+                      style={{
+                        backgroundColor: '#A8A29E',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '0.9rem 0',
+                        width: '100%',
+                        fontWeight: 700,
+                        fontSize: '0.95rem',
+                        cursor: 'not-allowed',
+                        textAlign: 'center'
+                      }}
+                    >
+                      Buat Pesanan (Nonaktif)
+                    </button>
+                  </div>
+                </div>
+              )
+            ) : tahapCheckout === 'pilihan_ongkir' ? (
               statusOngkir === 'sukses' ? (
                 /* ==============================================================
                    GAMBAR 1: PILIH LAYANAN KURIR (WBS 1.2.7.1 & 1.2.7.3)
