@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Circle, Square, LayoutList, Diamond } from 'lucide-react';
+import { Circle, Square, LayoutList, Diamond, ShoppingBag } from 'lucide-react';
 import '../styles/admin.css';
 
 const API_URL = 'http://localhost:8080';
@@ -320,6 +320,15 @@ export default function OwnerDashboard() {
               >
                 <Diamond size={16} />
                 <span>Modal & Biaya</span>
+              </div>
+            </li>
+            <li>
+              <div
+                className="sidebar-item"
+                onClick={() => navigate('/admin/pesanan')}
+              >
+                <ShoppingBag size={16} />
+                <span>Pesanan</span>
               </div>
             </li>
           </ul>

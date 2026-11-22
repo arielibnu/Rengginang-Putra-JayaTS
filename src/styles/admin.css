@@ -2301,3 +2301,256 @@
 }
 
 
+
+
+/* ==========================================================================
+   PPL-21: DAFTAR DAN DETAIL PESANAN OWNER
+   ========================================================================== */
+
+.orders-filter-row {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.orders-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+  min-width: 220px;
+}
+
+.orders-filter-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #43281C;
+}
+
+.orders-filter-input,
+.orders-filter-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: #43281C;
+  border: 1px solid #E5DCD2;
+  border-radius: 10px;
+  background-color: #FFFFFF;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.orders-filter-input:focus,
+.orders-filter-select:focus {
+  border-color: #43281C;
+}
+
+.orders-table-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  box-shadow: 0 4px 20px rgba(67, 40, 28, 0.03);
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table th {
+  text-align: left;
+  padding: 0.85rem 1rem 1rem;
+  color: #66564C;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-bottom: 1px solid #F0EAE1;
+}
+
+.orders-table td {
+  padding: 1.15rem 1rem;
+  border-bottom: 1px solid #F5EFEB;
+  vertical-align: middle;
+  font-size: 0.925rem;
+  color: #43281C;
+}
+
+.orders-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.order-row-clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.order-row-clickable:hover td {
+  background-color: #FAF6F0;
+}
+
+.order-cell-id {
+  font-weight: 700;
+  color: #43281C;
+}
+
+.order-badge-pill {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+}
+
+.order-badge-menunggu {
+  background-color: #FFF3E0;
+  color: #E65100;
+}
+
+.order-badge-dibayar {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+}
+
+.order-badge-gagal {
+  background-color: #FFEBEE;
+  color: #C62828;
+}
+
+.order-badge-baru {
+  background-color: #E3F2FD;
+  color: #1565C0;
+}
+
+.order-badge-diproses {
+  background-color: #FFF8E1;
+  color: #F57F17;
+}
+
+.order-badge-selesai {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+}
+
+.order-badge-batal {
+  background-color: #ECEFF1;
+  color: #546E7A;
+}
+
+.order-detail-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.btn-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #66564C;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  margin-bottom: 1rem;
+}
+
+.btn-back-link:hover {
+  color: #43281C;
+}
+
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 860px) {
+  .order-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.order-info-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EFE8DF;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 20px rgba(67, 40, 28, 0.03);
+}
+
+.order-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #43281C;
+  margin-bottom: 1.25rem;
+}
+
+.order-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  font-size: 0.925rem;
+  color: #66564C;
+}
+
+.order-info-item {
+  line-height: 1.5;
+}
+
+.order-info-item strong {
+  color: #43281C;
+}
+
+.order-status-banner {
+  background-color: #FAF4EB;
+  border: 1px solid #EFE8DF;
+  border-radius: 12px;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.order-status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.status-line-bayar {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2E7D32;
+}
+
+.status-line-proses {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #43281C;
+}
+
+.btn-ubah-status {
+  background-color: #4A2C17;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-ubah-status:hover {
+  background-color: #351C0C;
+}
