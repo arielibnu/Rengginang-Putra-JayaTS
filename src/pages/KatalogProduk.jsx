@@ -225,16 +225,20 @@ export default function KatalogProduk() {
     }
   };
 
-  // Handler tombol Beli Produk dengan validasi kuota stok realtime (WBS 1.2.1.3)
+  // Handler tombol Beli Produk dengan validasi kuota stok realtime (WBS 1.2.1.3 & PPL-11 Alur Keranjang)
   const handleBeli = async (produk) => {
-    if (tombolDisabled) {
-      if (apakahStokHabis) {
-        alert('Produk sedang habis. Pembelian dinonaktifkan.');
-      } else if (apakahMelebihiStok) {
-        alert(`Jumlah pembelian (${jumlahBeli} bungkus) melebihi stok yang tersedia (${produk.stok} bungkus).`);
-      } else {
-        alert('Jumlah pembelian minimal 1 bungkus.');
-      }
+    const qtyBeli = (produkDipilih && produkDipilih.id === produk.id) ? (jumlahBeli || 1) : 1;
+
+    if (produk.stok <= 0) {
+      alert('Produk sedang habis. Pembelian dinonaktifkan.');
+      return;
+    }
+    if (qtyBeli > produk.stok) {
+      alert(`Jumlah pembelian (${qtyBeli} bungkus) melebihi stok yang tersedia (${produk.stok} bungkus).`);
+      return;
+    }
+    if (qtyBeli < 1) {
+      alert('Jumlah pembelian minimal 1 bungkus.');
       return;
     }
 
@@ -244,7 +248,7 @@ export default function KatalogProduk() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id_varian: produk.id,
-          jumlah: jumlahBeli
+          jumlah: qtyBeli
         })
       });
 
@@ -258,8 +262,57 @@ export default function KatalogProduk() {
       console.warn('Backend validasi offline, fallback ke verifikasi lokal:', err);
     }
 
-    setJudulModal(`Pesan ${produk.nama} (${jumlahBeli} bungkus)`);
-    setBukaModalKontak(true);
+    // Masukkan produk ke Keranjang Belanja (localStorage: keranjang_belanja)
+    try {
+      const STORAGE_KEY = 'keranjang_belanja';
+      const saved = localStorage.getItem(STORAGE_KEY);
+      let currentItems = [];
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) currentItems = parsed;
+        } catch {}
+      }
+
+      // Cari apakah varian produk sudah ada di keranjang
+      const existingIndex = currentItems.findIndex(
+        (it) => it.slug === produk.id || it.id === produk.id || it.varian?.toLowerCase() === produk.varian?.toLowerCase()
+      );
+
+      if (existingIndex >= 0) {
+        const itemLama = currentItems[existingIndex];
+        const stokMaks = produk.stok || itemLama.stokTersedia || 99;
+        const jumlahBaru = Math.min(stokMaks, (itemLama.jumlah || 0) + qtyBeli);
+        currentItems[existingIndex] = {
+          ...itemLama,
+          jumlah: jumlahBaru,
+          stokTersedia: stokMaks,
+          harga: produk.hargaAngka || itemLama.harga || 28000
+        };
+      } else {
+        const idNumerikMap = { udang: 1, bawang: 2, cumi: 3, terasi: 4, lorjuk: 5, manis: 6 };
+        const idItem = idNumerikMap[produk.id] || Date.now();
+        currentItems.push({
+          id: idItem,
+          slug: produk.id,
+          nama: produk.nama,
+          varian: produk.varian,
+          beratBersih: produk.beratBersih || '450 gr',
+          harga: produk.hargaAngka || 28000,
+          jumlah: qtyBeli,
+          stokTersedia: produk.stok,
+          gambar: produk.gambar || '/images/products/rengginang-udang.jpg'
+        });
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentItems));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.warn('Gagal menyimpan ke localStorage keranjang:', e);
+    }
+
+    // Arahkan pelanggan ke halaman Keranjang Belanja (PPL-11)
+    navigate('/keranjang');
   };
 
   // Validasi ketersediaan stok & jumlah pembelian (PPL-10)

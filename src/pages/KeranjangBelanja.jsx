@@ -53,7 +53,11 @@ export default function KeranjangBelanja() {
     } catch (e) {
       console.warn('Gagal membaca keranjang dari localStorage:', e);
     }
-    return DEFAULT_ITEMS;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('demo') === 'true' || params.get('preset') === 'demo') {
+      return DEFAULT_ITEMS;
+    }
+    return [];
   });
 
   // State Modal Konfirmasi Hapus (Figma Image 4)

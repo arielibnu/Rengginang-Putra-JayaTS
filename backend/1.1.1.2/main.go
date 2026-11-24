@@ -27,6 +27,8 @@ import (
 	ordergenerator "rengginang-putra-jaya/auth/1.2.9.1"
 	reservasisstok "rengginang-putra-jaya/auth/1.2.9.2"
 	pesananowner "rengginang-putra-jaya/auth/1.2.10.2"
+	tagihanmidtrans "rengginang-putra-jaya/auth/1.3.1.2"
+	sinkronisasimidtrans "rengginang-putra-jaya/auth/1.3.1.4"
 )
 
 func main() {
@@ -667,6 +669,37 @@ func main() {
 	http.HandleFunc(
 		"/api/admin/pesanan/status",
 		layananPesananOwner.HandlerUpdateStatusPesanan,
+	)
+
+	// ==========================================
+	// WBS 1.3.1.2 & 1.3.1.4 - MIDTRANS SANDBOX PAYMENT GATEWAY (PPL-19)
+	// ==========================================
+
+	layananTagihanMidtrans := tagihanmidtrans.InisialisasiLayanan(db)
+	layananSinkronisasiMidtrans := sinkronisasimidtrans.InisialisasiLayanan(db)
+
+	// POST /api/pembayaran/buat-tagihan (WBS 1.3.1.2)
+	http.HandleFunc(
+		"/api/pembayaran/buat-tagihan",
+		layananTagihanMidtrans.HandlerBuatTagihan,
+	)
+
+	// GET /api/pembayaran/status (WBS 1.3.1.4)
+	http.HandleFunc(
+		"/api/pembayaran/status",
+		layananSinkronisasiMidtrans.HandlerStatusPembayaran,
+	)
+
+	// POST /api/pembayaran/webhook (WBS 1.3.1.4)
+	http.HandleFunc(
+		"/api/pembayaran/webhook",
+		layananSinkronisasiMidtrans.HandlerWebhook,
+	)
+
+	// POST /api/pembayaran/simulasi-bayar (WBS 1.3.1.4 Simulasi)
+	http.HandleFunc(
+		"/api/pembayaran/simulasi-bayar",
+		layananSinkronisasiMidtrans.HandlerSimulasiBayar,
 	)
 
 	// ==========================================

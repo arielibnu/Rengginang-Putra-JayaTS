@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Check, ChevronDown, AlertCircle, ArrowLeft, Store, Truck } from 'lucide-react';
 
 const API_URL = 'http://localhost:8080';
 
@@ -62,9 +62,8 @@ export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Pilihan tahap checkout: 'alamat' (PPL-15), 'pilihan_ongkir' (PPL-16), atau 'ringkasan_konfirmasi' (PPL-17)
-  // Alur alami prototype: Alamat -> Pilihan Kurir -> Ringkasan Konfirmasi
-  const [tahapCheckout, setTahapCheckout] = useState('alamat');
+  // Pilihan tahap checkout: 'metode_penerimaan' (PPL-14), 'alamat' (PPL-15), 'pilihan_ongkir' (PPL-16), atau 'ringkasan_konfirmasi' (PPL-17)
+  const [tahapCheckout, setTahapCheckout] = useState('metode_penerimaan');
 
   // Status tampilan PPL-16: 'sukses' (Gambar 1) atau 'error' (Gambar 2)
   const [statusOngkir, setStatusOngkir] = useState('sukses');
@@ -82,11 +81,11 @@ export default function Checkout() {
   // Status popup notifikasi ketika tombol "Gunakan layanan" diklik
   const [notifikasiLayanan, setNotifikasiLayanan] = useState('');
 
-  // Data pelanggan dan penerima sesuai Figma PPL-16
-  const [namaPenerima, setNamaPenerima] = useState('Pelanggan Contoh');
-  const [nomorWhatsApp, setNomorWhatsApp] = useState('08xx-xxxx-xxxx');
-  const [metodePenerimaan] = useState('kurir');
-  const [alamatDisplay, setAlamatDisplay] = useState('Jember, Jawa Timur • Jl. Contoh No. 12');
+  // Data pelanggan dan penerima sesuai Figma PPL-14 & PPL-16
+  const [namaPenerima, setNamaPenerima] = useState('Contoh Pelanggan');
+  const [nomorWhatsApp, setNomorWhatsApp] = useState('081234567890');
+  const [metodePenerimaan, setMetodePenerimaan] = useState('ambil_sendiri');
+  const [alamatDisplay, setAlamatDisplay] = useState('Outlet Situbondo (Ambil Sendiri)');
 
   // Data form alamat (PPL-15)
   const [provinsi, setProvinsi] = useState('Jawa Timur');
@@ -96,23 +95,55 @@ export default function Checkout() {
   const [alamatLengkap, setAlamatLengkap] = useState('Jl. Contoh No. 12');
   const [formDisentuh, setFormDisentuh] = useState(false);
 
-  // Rincian produk sesuai mockup Figma PPL-16 (Subtotal Rp84.000)
-  const itemsCheckout = [
-    {
-      id: 'udang',
-      nama: 'Rengginang Udang',
-      jumlah: 2,
-      harga: 28000,
-      subtotal: 56000
-    },
-    {
-      id: 'bawang',
-      nama: 'Rengginang Bawang',
-      jumlah: 1,
-      harga: 28000,
-      subtotal: 28000
+  // Rincian produk dinamis dari Keranjang Belanja (PPL-11)
+  const [itemsCheckout] = useState(() => {
+    if (location.state?.keranjang && Array.isArray(location.state.keranjang) && location.state.keranjang.length > 0) {
+      return location.state.keranjang.map((it, idx) => ({
+        id: it.slug || it.id || `prod-${idx + 1}`,
+        id_varian: it.id || (it.slug === 'udang' ? 1 : it.slug === 'bawang' ? 2 : it.slug === 'cumi' ? 3 : it.slug === 'terasi' ? 4 : idx + 1),
+        nama: it.nama,
+        varian: it.varian || 'Reguler',
+        jumlah: it.jumlah || 1,
+        harga: it.harga || 28000,
+        subtotal: (it.harga || 28000) * (it.jumlah || 1),
+        berat_satuan_gram: it.berat_satuan_gram || 450
+      }));
     }
-  ];
+    try {
+      const saved = localStorage.getItem('keranjang_belanja');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((it, idx) => ({
+            id: it.slug || it.id || `prod-${idx + 1}`,
+            id_varian: it.id || (it.slug === 'udang' ? 1 : it.slug === 'bawang' ? 2 : it.slug === 'cumi' ? 3 : it.slug === 'terasi' ? 4 : idx + 1),
+            nama: it.nama,
+            varian: it.varian || 'Reguler',
+            jumlah: it.jumlah || 1,
+            harga: it.harga || 28000,
+            subtotal: (it.harga || 28000) * (it.jumlah || 1),
+            berat_satuan_gram: it.berat_satuan_gram || 450
+          }));
+        }
+      }
+    } catch {}
+    return [
+      {
+        id: 'udang',
+        id_varian: 1,
+        nama: 'Rengginang Udang',
+        varian: 'Udang',
+        jumlah: 1,
+        harga: 28000,
+        subtotal: 28000,
+        berat_satuan_gram: 450
+      }
+    ];
+  });
+
+  const subtotalProduk = itemsCheckout.reduce((acc, curr) => acc + (curr.subtotal || curr.harga * curr.jumlah), 0);
+  const ongkirNominal = metodePenerimaan === 'ambil_sendiri' ? 0 : (kurirTerpilih === 'jnt' ? 34000 : kurirTerpilih === 'sicepat' ? 38000 : 36000);
+  const totalAkhir = subtotalProduk + ongkirNominal;
 
   // Daftar opsi ekspedisi resmi sesuai Gambar 1 (WBS 1.2.7.1 & 1.2.7.3)
   const daftarKurir = [
@@ -197,9 +228,19 @@ export default function Checkout() {
       // PPL-16 Gambar 1: Sukses daftar pilihan kurir (WBS 1.2.7.1 & 1.2.7.3)
       setTahapCheckout('pilihan_ongkir');
       setStatusOngkir('sukses');
-    } else {
-      // Default: Mulai dari pengisian wilayah dan alamat lengkap (PPL-15)
+      setMetodePenerimaan('kurir');
+    } else if (preset === 'ppl15' || preset === 'alamat') {
       setTahapCheckout('alamat');
+      setMetodePenerimaan('kurir');
+    } else if (preset === 'ppl14_2' || preset === 'kurir_awal') {
+      setTahapCheckout('metode_penerimaan');
+      setMetodePenerimaan('kurir');
+    } else if (preset === 'ppl14_1' || preset === 'pickup') {
+      setTahapCheckout('metode_penerimaan');
+      setMetodePenerimaan('ambil_sendiri');
+    } else {
+      // Default: Mulai dari PPL-14 Pilihan Metode Penerimaan
+      setTahapCheckout('metode_penerimaan');
     }
   }, [location.search]);
 
@@ -231,8 +272,8 @@ export default function Checkout() {
             kode_pos: kodePos,
             alamat_lengkap: alamatLengkap
           },
-          subtotal_produk: 84000,
-          total_sementara: 84000
+          subtotal_produk: subtotalProduk,
+          total_sementara: subtotalProduk
         })
       });
 
@@ -350,14 +391,17 @@ export default function Checkout() {
             estimasi_hari: kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari',
             terverifikasi_api: true
           },
-          items: [
-            { id_produk: 'prod-1', nama_produk: 'Rengginang Udang', jumlah: 2, harga_satuan: 28000, subtotal: 56000 },
-            { id_produk: 'prod-2', nama_produk: 'Rengginang Bawang', jumlah: 1, harga_satuan: 28000, subtotal: 28000 }
-          ],
+          items: itemsCheckout.map((it, idx) => ({
+            id_produk: String(it.id || `prod-${idx + 1}`),
+            nama_produk: it.nama,
+            jumlah: it.jumlah,
+            harga_satuan: it.harga,
+            subtotal: it.subtotal || it.harga * it.jumlah
+          })),
           ringkasan_klien: {
-            subtotal: 84000,
+            subtotal: subtotalProduk,
             ongkos_kirim: ongkirNominal,
-            total_akhir: 84000 + ongkirNominal
+            total_akhir: totalAkhir
           }
         })
       });
@@ -381,50 +425,38 @@ export default function Checkout() {
     setErrorOrder('');
 
     const kurir = daftarKurir.find((k) => k.id === kurirTerpilih);
-    const ongkirNominal = kurirTerpilih === 'jnt' ? 34000 : kurirTerpilih === 'sicepat' ? 38000 : 36000;
+    const ongkirNominal = metodePenerimaan === 'ambil_sendiri' ? 0 : (kurirTerpilih === 'jnt' ? 34000 : kurirTerpilih === 'sicepat' ? 38000 : 36000);
 
     const payloadPesanan = {
-      tipe_checkout: 'guest',
-      metode_penerimaan: 'Kirim via Kurir',
+      tipe_checkout: metodePenerimaan === 'ambil_sendiri' ? 'pickup' : 'guest',
+      metode_penerimaan: metodePenerimaan === 'ambil_sendiri' ? 'Ambil Sendiri di Toko' : 'Kirim via Kurir',
       token_validasi: tokenValidasi || 'token-terverifikasi-server',
       kontak: {
-        nama_penerima: namaPenerima || 'Pelanggan Contoh',
+        nama_penerima: namaPenerima || 'Contoh Pelanggan',
         nomor_whatsapp: nomorWhatsApp && !nomorWhatsApp.includes('x') ? nomorWhatsApp : '081234567890',
-        alamat_lengkap: alamatLengkap || 'Jl. Contoh No. 12',
-        kota_kabupaten: kotaKabupaten || 'Kabupaten Jember',
-        provinsi: provinsi || 'Jawa Timur',
-        kode_pos: kodePos || '68131'
+        alamat_lengkap: metodePenerimaan === 'ambil_sendiri' ? 'Outlet Situbondo (Ambil Sendiri)' : (alamatLengkap || 'Jl. Contoh No. 12'),
+        kota_kabupaten: metodePenerimaan === 'ambil_sendiri' ? 'Kabupaten Situbondo' : (kotaKabupaten || 'Kabupaten Jember'),
+        provinsi: metodePenerimaan === 'ambil_sendiri' ? 'Jawa Timur' : (provinsi || 'Jawa Timur'),
+        kode_pos: metodePenerimaan === 'ambil_sendiri' ? '68312' : (kodePos || '68131')
       },
       kurir: {
-        id_kurir: kurirTerpilih,
-        nama_kurir: kurir?.nama || 'JNE REG',
-        kode_layanan: 'REG',
+        id_kurir: metodePenerimaan === 'ambil_sendiri' ? 'pickup' : kurirTerpilih,
+        nama_kurir: metodePenerimaan === 'ambil_sendiri' ? 'Ambil Sendiri di Toko' : (kurir?.nama || 'JNE REG'),
+        kode_layanan: metodePenerimaan === 'ambil_sendiri' ? 'PICKUP' : 'REG',
         tarif_ongkir: ongkirNominal,
-        estimasi_hari: kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari',
+        estimasi_hari: metodePenerimaan === 'ambil_sendiri' ? 'Langsung di Toko' : (kurirTerpilih === 'jnt' ? '1-2 hari' : '2-3 hari'),
         terverifikasi_api: true
       },
-      items: [
-        {
-          id_varian: 1,
-          id_produk: 'prod-1',
-          nama_produk: 'Rengginang Udang',
-          nama_varian: 'Udang Gurih',
-          jumlah: 2,
-          harga_satuan_snapshot: 28000,
-          subtotal_snapshot: 56000,
-          berat_satuan_gram: 500
-        },
-        {
-          id_varian: 2,
-          id_produk: 'prod-2',
-          nama_produk: 'Rengginang Bawang',
-          nama_varian: 'Bawang Renyah',
-          jumlah: 1,
-          harga_satuan_snapshot: 28000,
-          subtotal_snapshot: 28000,
-          berat_satuan_gram: 350
-        }
-      ]
+      items: itemsCheckout.map((it, idx) => ({
+        id_varian: Number(it.id_varian) || (it.id === 'udang' ? 1 : it.id === 'bawang' ? 2 : it.id === 'cumi' ? 3 : it.id === 'terasi' ? 4 : idx + 1),
+        id_produk: String(it.id || `prod-${idx + 1}`),
+        nama_produk: it.nama,
+        nama_varian: it.varian || 'Reguler',
+        jumlah: it.jumlah,
+        harga_satuan_snapshot: it.harga,
+        subtotal_snapshot: it.harga * it.jumlah,
+        berat_satuan_gram: it.berat_satuan_gram || 450
+      }))
     };
 
     try {
@@ -445,6 +477,12 @@ export default function Checkout() {
       }
 
       if (res.ok && data.nomor_pesanan) {
+        // Bersihkan keranjang belanja setelah order berhasil dibuat
+        try {
+          localStorage.setItem('keranjang_belanja', JSON.stringify([]));
+          window.dispatchEvent(new Event('storage'));
+        } catch {}
+
         // Tampilkan feedback notifikasi sesaat
         setNotifikasiLayanan(`Pesanan berhasil dibuat! Nomor pesanan: ${data.nomor_pesanan}. Mengarahkan ke halaman konfirmasi...`);
 
@@ -528,21 +566,133 @@ export default function Checkout() {
       )}
 
       {/* ======================================================================
-          KONTEN UTAMA CHECKOUT (SESUAI GAMBAR 1 & GAMBAR 2)
+          KONTEN UTAMA CHECKOUT (PPL-14, PPL-15, PPL-16, PPL-17)
           ====================================================================== */}
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '1.75rem 1.5rem' }}>
-        {/* JUDUL HALAMAN SESUAI FIGMA */}
-        <h1
+      <div style={{ maxWidth: '1140px', margin: '0 auto', padding: '1.75rem 1.5rem' }}>
+        {/* BREADCRUMB SESUAI FIGMA */}
+        <div style={{ marginBottom: '0.75rem', fontSize: '0.85rem', color: '#8E7D73' }}>
+          <Link to="/" style={{ color: '#8E7D73', textDecoration: 'none' }}>
+            Beranda
+          </Link>
+          <span style={{ margin: '0 0.5rem' }}>/</span>
+          <Link to="/keranjang" style={{ color: '#8E7D73', textDecoration: 'none' }}>
+            Keranjang
+          </Link>
+          <span style={{ margin: '0 0.5rem' }}>/</span>
+          <span style={{ color: '#43281C', fontWeight: 600 }}>Checkout</span>
+        </div>
+
+        {/* JUDUL DAN SUBJUDUL SESUAI FIGMA */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h1
+            style={{
+              fontSize: '1.875rem',
+              fontWeight: 800,
+              color: '#43281C',
+              margin: '0 0 0.35rem 0',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            Checkout
+          </h1>
+          <p style={{ fontSize: '0.925rem', color: '#8E7D73', margin: 0 }}>
+            {tahapCheckout === 'metode_penerimaan'
+              ? 'Pilih cara menerima pesanan rengginang Anda.'
+              : tahapCheckout === 'pilihan_ongkir'
+              ? 'Pilih opsi kurir pengiriman resmi.'
+              : tahapCheckout === 'ringkasan_konfirmasi'
+              ? 'Periksa kembali data pesanan sebelum membuat pesanan resmi.'
+              : 'Lengkapi data wilayah dan alamat tujuan pengiriman.'}
+          </p>
+        </div>
+
+        {/* STEPPER 3 LANGKAH SESUAI FIGMA */}
+        <div
           style={{
-            fontSize: '1.875rem',
-            fontWeight: 800,
-            color: '#2D231E',
-            margin: '0 0 1.5rem 0',
-            letterSpacing: '-0.02em'
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #ECE4D9',
+            borderRadius: '16px',
+            padding: '1.25rem 2.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '2rem',
+            boxShadow: '0 1px 4px rgba(67, 40, 28, 0.03)'
           }}
         >
-          {tahapCheckout === 'pilihan_ongkir' ? 'Checkout — Pilihan Ongkir' : 'Checkout — Alamat Pengiriman'}
-        </h1>
+          {/* Langkah 1: Keranjang (Selesai/Centang Hijau) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#E8F5E9',
+                color: '#2E7D32',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.9rem',
+                fontWeight: 700
+              }}
+            >
+              ✓
+            </div>
+            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#43281C' }}>
+              Keranjang
+            </span>
+          </div>
+
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#E8DED3', margin: '0 1.5rem' }} />
+
+          {/* Langkah 2: Checkout (Aktif/Dark Brown) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#43281C',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.9rem',
+                fontWeight: 700
+              }}
+            >
+              2
+            </div>
+            <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#43281C' }}>
+              Checkout
+            </span>
+          </div>
+
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#E8DED3', margin: '0 1.5rem' }} />
+
+          {/* Langkah 3: Konfirmasi pesanan (Inaktif/Abu-abu) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#F3EDE4',
+                color: '#8E7D73',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.9rem',
+                fontWeight: 600
+              }}
+            >
+              3
+            </div>
+            <span style={{ fontSize: '0.95rem', fontWeight: 500, color: '#8E7D73' }}>
+              Konfirmasi pesanan
+            </span>
+          </div>
+        </div>
 
         {/* TATA LETAK 2 KOLOM (KIRI: KARTU UTAMA, KANAN: RINGKASAN PESANAN) */}
         <div
@@ -553,112 +703,404 @@ export default function Checkout() {
             alignItems: 'start'
           }}
         >
-          {/* ==================================================================
-              KOLOM KIRI: FORM / PILIHAN ONGKIR (GAMBAR 1 & 2)
-              ================================================================== */}
-          <div
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '16px',
-              border: '1px solid #ECE7E1',
-              padding: '1.75rem 2rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)'
-            }}
-          >
-            {/* 1. INFORMASI PELANGGAN */}
-            <div>
-              <h2
-                style={{
-                  fontSize: '1.15rem',
-                  fontWeight: 700,
-                  color: '#2D231E',
-                  margin: '0 0 0.75rem 0'
-                }}
-              >
-                Informasi pelanggan
-              </h2>
-              <div style={{ fontSize: '0.925rem', color: '#5C5046', marginBottom: '0.25rem' }}>
-                Nama: {namaPenerima}
-              </div>
-              <div style={{ fontSize: '0.925rem', color: '#5C5046' }}>
-                Nomor WhatsApp: {nomorWhatsApp}
-              </div>
-            </div>
-
-            {/* GARIS PEMBATAS */}
-            <hr
-              style={{
-                border: 'none',
-                borderTop: '1px solid #ECE7E1',
-                margin: '1.35rem 0'
-              }}
-            />
-
-            {/* 2. METODE PENERIMAAN */}
-            <div>
-              <h2
-                style={{
-                  fontSize: '1.15rem',
-                  fontWeight: 700,
-                  color: '#2D231E',
-                  margin: '0 0 0.75rem 0'
-                }}
-              >
-                Metode penerimaan
-              </h2>
-              <span
-                style={{
-                  display: 'inline-block',
-                  backgroundColor: '#EAF5EE',
-                  color: '#15803D',
-                  padding: '0.3rem 0.85rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.825rem',
-                  fontWeight: 600
-                }}
-              >
-                Kirim via Kurir
-              </span>
+          {/* KOLOM KIRI */}
+          {tahapCheckout === 'metode_penerimaan' ? (
+            /* ==============================================================
+               PPL-14: PILIHAN METODE PENERIMAAN (PPL14_01 & PPL14_02)
+               ============================================================== */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* KARTU 1: INFORMASI KONTAK */}
               <div
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: '0.65rem'
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  border: '1px solid #ECE4D9',
+                  padding: '1.75rem 2rem',
+                  boxShadow: '0 1px 4px rgba(67, 40, 28, 0.03)'
                 }}
               >
-                <div style={{ fontSize: '0.9rem', color: '#5C5046' }}>
-                  Alamat: {alamatDisplay}
+                <h2
+                  style={{
+                    fontSize: '1.15rem',
+                    fontWeight: 700,
+                    color: '#43281C',
+                    margin: '0 0 0.25rem 0'
+                  }}
+                >
+                  Informasi kontak
+                </h2>
+                <p style={{ fontSize: '0.85rem', color: '#8E7D73', margin: '0 0 1.25rem 0' }}>
+                  Data yang sudah diisi pada tahap PPL-13.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#43281C', marginBottom: '0.4rem' }}>
+                      Nama penerima
+                    </label>
+                    <input
+                      type="text"
+                      value={namaPenerima}
+                      onChange={(e) => setNamaPenerima(e.target.value)}
+                      placeholder="Contoh Pelanggan"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '8px',
+                        border: '1px solid #D5C7B8',
+                        backgroundColor: '#FFFFFF',
+                        fontSize: '0.9rem',
+                        color: '#2D231E',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#43281C', marginBottom: '0.4rem' }}>
+                      Nomor WhatsApp
+                    </label>
+                    <input
+                      type="text"
+                      value={nomorWhatsApp}
+                      onChange={(e) => setNomorWhatsApp(e.target.value)}
+                      placeholder="081234567890"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '8px',
+                        border: '1px solid #D5C7B8',
+                        backgroundColor: '#FFFFFF',
+                        fontSize: '0.9rem',
+                        color: '#2D231E',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
                 </div>
-                {tahapCheckout === 'pilihan_ongkir' && (
+              </div>
+
+              {/* KARTU 2: METODE PENERIMAAN */}
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  border: '1px solid #ECE4D9',
+                  padding: '1.75rem 2rem',
+                  boxShadow: '0 1px 4px rgba(67, 40, 28, 0.03)'
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: '1.15rem',
+                    fontWeight: 700,
+                    color: '#43281C',
+                    margin: '0 0 0.25rem 0'
+                  }}
+                >
+                  Metode penerimaan
+                </h2>
+                <p style={{ fontSize: '0.85rem', color: '#8E7D73', margin: '0 0 1.25rem 0' }}>
+                  Pilih satu metode sesuai kebutuhan Anda.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {/* OPSI 1: AMBIL SENDIRI DI TOKO (PPL14_01) */}
+                  <div
+                    onClick={() => {
+                      setMetodePenerimaan('ambil_sendiri');
+                      setAlamatDisplay('Outlet Situbondo (Ambil Sendiri)');
+                    }}
+                    style={{
+                      border: metodePenerimaan === 'ambil_sendiri' ? '2px solid #43281C' : '1px solid #ECE4D9',
+                      backgroundColor: metodePenerimaan === 'ambil_sendiri' ? '#FAF6F2' : '#FFFFFF',
+                      borderRadius: '12px',
+                      padding: '1.15rem 1.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: metodePenerimaan === 'ambil_sendiri' ? '6px solid #43281C' : '2px solid #D5C7B8',
+                          backgroundColor: '#FFFFFF',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Store size={22} color="#43281C" />
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#43281C' }}>
+                            Ambil Sendiri di Toko
+                          </div>
+                          <div style={{ fontSize: '0.825rem', color: '#8E7D73', marginTop: '0.15rem' }}>
+                            Pelanggan mengambil pesanan secara langsung.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        backgroundColor: '#E8F5E9',
+                        color: '#166534',
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                        padding: '0.35rem 0.75rem',
+                        borderRadius: '9999px'
+                      }}
+                    >
+                      Ongkir Rp0
+                    </span>
+                  </div>
+
+                  {/* OPSI 2: KIRIM VIA EKSPEDISI / KURIR (PPL14_02) */}
+                  <div
+                    onClick={() => {
+                      setMetodePenerimaan('kurir');
+                      setAlamatDisplay(`${kotaKabupaten.replace('Kabupaten ', '').replace('Kota ', '')}, ${provinsi} • ${alamatLengkap}`);
+                    }}
+                    style={{
+                      border: metodePenerimaan === 'kurir' ? '2px solid #43281C' : '1px solid #ECE4D9',
+                      backgroundColor: metodePenerimaan === 'kurir' ? '#FAF6F2' : '#FFFFFF',
+                      borderRadius: '12px',
+                      padding: '1.15rem 1.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: metodePenerimaan === 'kurir' ? '6px solid #43281C' : '2px solid #D5C7B8',
+                          backgroundColor: '#FFFFFF',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Truck size={22} color="#43281C" />
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#43281C' }}>
+                            Kirim via Ekspedisi / Kurir
+                          </div>
+                          <div style={{ fontSize: '0.825rem', color: '#8E7D73', marginTop: '0.15rem' }}>
+                            Pesanan dikirim ke alamat tujuan.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        backgroundColor: '#FFFBEB',
+                        color: '#B45309',
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                        padding: '0.35rem 0.75rem',
+                        borderRadius: '9999px'
+                      }}
+                    >
+                      Ongkir menyusul
+                    </span>
+                  </div>
+                </div>
+
+                {/* KONDISI DI BAWAH OPSI */}
+                {metodePenerimaan === 'ambil_sendiri' ? (
+                  /* KOTAK HIJAU: PPL14_01 */
+                  <div
+                    style={{
+                      backgroundColor: '#EAF5EE',
+                      border: '1px solid #BBF7D0',
+                      borderRadius: '10px',
+                      padding: '1rem 1.25rem',
+                      marginTop: '1.25rem',
+                      color: '#15803D'
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.35rem' }}>
+                      ✓ Ambil Sendiri dipilih
+                    </div>
+                    <div style={{ fontSize: '0.85rem', lineHeight: 1.5, color: '#166534' }}>
+                      Alamat pengiriman tidak diperlukan dan form alamat disembunyikan. Biaya pengiriman otomatis Rp0.
+                    </div>
+                  </div>
+                ) : (
+                  /* FORM ALAMAT PENGIRIMAN: PPL14_02 */
+                  <div
+                    style={{
+                      borderTop: '1px solid #ECE4D9',
+                      paddingTop: '1.25rem',
+                      marginTop: '1.25rem'
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: '#43281C', marginBottom: '0.25rem' }}>
+                      Alamat pengiriman
+                    </div>
+                    <div style={{ fontSize: '0.825rem', color: '#8E7D73', marginBottom: '1rem' }}>
+                      Tampil hanya saat memilih Kirim via Ekspedisi/Kurir.
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#43281C', marginBottom: '0.4rem' }}>
+                        Alamat lengkap *
+                      </label>
+                      <input
+                        type="text"
+                        value={alamatLengkap}
+                        onChange={(e) => setAlamatLengkap(e.target.value)}
+                        placeholder="Masukkan alamat penerima untuk pengiriman"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem 1rem',
+                          borderRadius: '8px',
+                          border: '1px solid #D5C7B8',
+                          fontSize: '0.9rem',
+                          color: '#2D231E',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{ fontSize: '0.8rem', color: '#8E7D73', marginTop: '0.4rem' }}>
+                        Detail alamat dan validasinya merupakan cakupan PPL-15.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* KONTEN KARTU TAHAP PPL-15, PPL-16, PPL-17 */
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1px solid #ECE4D9',
+                padding: '1.75rem 2rem',
+                boxShadow: '0 1px 4px rgba(67, 40, 28, 0.03)'
+              }}
+            >
+              {/* 1. INFORMASI PELANGGAN */}
+              <div>
+                <h2
+                  style={{
+                    fontSize: '1.15rem',
+                    fontWeight: 700,
+                    color: '#2D231E',
+                    margin: '0 0 0.75rem 0'
+                  }}
+                >
+                  Informasi pelanggan
+                </h2>
+                <div style={{ fontSize: '0.925rem', color: '#5C5046', marginBottom: '0.25rem' }}>
+                  Nama: {namaPenerima}
+                </div>
+                <div style={{ fontSize: '0.925rem', color: '#5C5046' }}>
+                  Nomor WhatsApp: {nomorWhatsApp}
+                </div>
+              </div>
+
+              {/* GARIS PEMBATAS */}
+              <hr
+                style={{
+                  border: 'none',
+                  borderTop: '1px solid #ECE7E1',
+                  margin: '1.35rem 0'
+                }}
+              />
+
+              {/* 2. METODE PENERIMAAN */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <h2
+                    style={{
+                      fontSize: '1.15rem',
+                      fontWeight: 700,
+                      color: '#2D231E',
+                      margin: 0
+                    }}
+                  >
+                    Metode penerimaan
+                  </h2>
                   <button
                     type="button"
-                    onClick={() => setTahapCheckout('alamat')}
+                    onClick={() => setTahapCheckout('metode_penerimaan')}
                     style={{
                       background: 'none',
                       border: 'none',
                       color: '#43281C',
-                      fontSize: '0.85rem',
+                      fontSize: '0.825rem',
                       fontWeight: 700,
                       textDecoration: 'underline',
                       cursor: 'pointer',
                       padding: 0
                     }}
                   >
-                    Ubah Alamat
+                    Ubah Metode
                   </button>
-                )}
+                </div>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    backgroundColor: metodePenerimaan === 'ambil_sendiri' ? '#E8F5E9' : '#EAF5EE',
+                    color: metodePenerimaan === 'ambil_sendiri' ? '#166534' : '#15803D',
+                    padding: '0.3rem 0.85rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.825rem',
+                    fontWeight: 600
+                  }}
+                >
+                  {metodePenerimaan === 'ambil_sendiri' ? 'Ambil Sendiri di Toko' : 'Kirim via Kurir'}
+                </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '0.65rem'
+                  }}
+                >
+                  <div style={{ fontSize: '0.9rem', color: '#5C5046' }}>
+                    Alamat: {alamatDisplay}
+                  </div>
+                  {tahapCheckout === 'pilihan_ongkir' && (
+                    <button
+                      type="button"
+                      onClick={() => setTahapCheckout('alamat')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#43281C',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        padding: 0
+                      }}
+                    >
+                      Ubah Alamat
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* GARIS PEMBATAS */}
-            <hr
-              style={{
-                border: 'none',
-                borderTop: '1px solid #ECE7E1',
-                margin: '1.35rem 0'
-              }}
-            />
+              {/* GARIS PEMBATAS */}
+              <hr
+                style={{
+                  border: 'none',
+                  borderTop: '1px solid #ECE7E1',
+                  margin: '1.35rem 0'
+                }}
+              />
 
             {/* ================================================================
                 KONDISIONAL KONTEN: PPL-17 (RINGKASAN KONFIRMASI) / PPL-16 / PPL-15
@@ -1218,103 +1660,207 @@ export default function Checkout() {
               </div>
             )}
           </div>
+        )}
 
           {/* ==================================================================
-              KOLOM KANAN: RINGKASAN PESANAN (IDENTIK GAMBAR 1 & GAMBAR 2)
+              KOLOM KANAN: RINGKASAN PESANAN SESUAI FIGMA
               ================================================================== */}
           <div
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '16px',
-              border: '1px solid #ECE7E1',
-              padding: '2rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)'
+              border: '1px solid #ECE4D9',
+              padding: '1.75rem',
+              boxShadow: '0 1px 4px rgba(67, 40, 28, 0.03)'
             }}
           >
-            <h2
-              style={{
-                fontSize: '1.15rem',
-                fontWeight: 700,
-                color: '#2D231E',
-                margin: '0 0 1.5rem 0'
-              }}
-            >
-              Ringkasan pesanan
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  color: '#43281C',
+                  margin: 0
+                }}
+              >
+                Ringkasan pesanan
+              </h2>
+              <span style={{ fontSize: '0.85rem', color: '#8E7D73' }}>
+                {itemsCheckout.length} jenis produk
+              </span>
+            </div>
 
-            {/* DAFTAR ITEM PESANAN */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+            {/* DAFTAR ITEM PESANAN DENGAN GAMBAR */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.25rem' }}>
               {itemsCheckout.map((item) => (
                 <div
                   key={item.id}
                   style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
                     alignItems: 'center',
-                    fontSize: '0.925rem',
-                    color: '#5C5046'
+                    gap: '0.85rem',
+                    paddingBottom: '0.75rem',
+                    borderBottom: '1px solid #F5EFE8'
                   }}
                 >
-                  <span>
-                    {item.nama} × {item.jumlah}
-                  </span>
-                  <span style={{ fontWeight: 600, color: '#2D231E' }}>
-                    Rp{item.subtotal.toLocaleString('id-ID')}
-                  </span>
+                  <img
+                    src={item.slug === 'bawang' ? '/images/products/rengginang-bawang.jpg' : '/images/products/rengginang-udang.jpg'}
+                    alt={item.nama}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      objectFit: 'cover',
+                      borderRadius: '8px',
+                      backgroundColor: '#F5EBE1',
+                      border: '1px solid #ECE4D9'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#43281C', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.nama}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#8E7D73', marginTop: '0.1rem' }}>
+                      Rasa {item.varian || 'Reguler'} • {item.berat_satuan_gram || 450} gr
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
+                      <span style={{ fontSize: '0.8rem', color: '#6B5E55' }}>
+                        {item.jumlah} × Rp{item.harga.toLocaleString('id-ID')}
+                      </span>
+                      <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#43281C' }}>
+                        Rp{(item.harga * item.jumlah).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* BARIS SUBTONG / SUBTOTAL */}
+            {/* SUB TOTAL PRODUK */}
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                fontSize: '0.925rem',
+                fontSize: '0.9rem',
+                color: '#6B5E55',
+                marginBottom: '0.75rem'
+              }}
+            >
+              <span>Subtotal produk</span>
+              <span style={{ fontWeight: 600, color: '#43281C' }}>
+                Rp{subtotalProduk.toLocaleString('id-ID')}
+              </span>
+            </div>
+
+            {/* METODE PENERIMAAN */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '0.9rem',
+                color: '#6B5E55',
+                marginBottom: '0.75rem'
+              }}
+            >
+              <span>Metode penerimaan</span>
+              <span style={{ fontWeight: 600, color: '#43281C' }}>
+                {metodePenerimaan === 'ambil_sendiri' ? 'Ambil sendiri' : 'Kurir'}
+              </span>
+            </div>
+
+            {/* ONGKOS KIRIM */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '0.9rem',
                 color: '#6B5E55',
                 marginBottom: '1rem'
               }}
             >
-              <span>Subtotal</span>
-              <span style={{ fontWeight: 600, color: '#2D231E' }}>
-                Rp84.000
+              <span>Ongkos kirim</span>
+              <span style={{ fontWeight: 600, color: metodePenerimaan === 'ambil_sendiri' ? '#166534' : '#43281C' }}>
+                {metodePenerimaan === 'ambil_sendiri'
+                  ? 'Rp0'
+                  : tahapCheckout === 'metode_penerimaan'
+                  ? 'Belum dihitung'
+                  : ongkirNominal
+                  ? `Rp${ongkirNominal.toLocaleString('id-ID')}`
+                  : 'Belum dihitung'}
               </span>
             </div>
 
-            {/* BARIS ONGKIR */}
+            {/* BARIS TOTAL SESUAI FIGMA */}
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                fontSize: '0.925rem',
-                color: '#6B5E55',
-                marginBottom: '1.5rem'
+                borderTop: '1px solid #ECE4D9',
+                paddingTop: '1rem',
+                marginBottom: '1.25rem'
               }}
             >
-              <span>Ongkir</span>
-              <span style={{ fontWeight: 600, color: '#2D231E' }}>
-                Tarif dari API
-              </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#43281C' }}>
+                  {metodePenerimaan === 'ambil_sendiri'
+                    ? 'Total pesanan'
+                    : tahapCheckout === 'metode_penerimaan'
+                    ? 'Total sementara'
+                    : 'Total pesanan'}
+                </span>
+                <span style={{ color: '#43281C', fontSize: '1.2rem', fontWeight: 800 }}>
+                  Rp{((metodePenerimaan === 'ambil_sendiri' || tahapCheckout === 'metode_penerimaan') ? subtotalProduk : totalAkhir).toLocaleString('id-ID')}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.775rem', color: '#8E7D73', marginTop: '0.35rem' }}>
+                {metodePenerimaan === 'ambil_sendiri'
+                  ? 'Tidak ada biaya pengiriman.'
+                  : tahapCheckout === 'metode_penerimaan'
+                  ? 'Belum termasuk ongkir dari PPL-16.'
+                  : ''}
+              </div>
             </div>
 
-            {/* BARIS TOTAL (DIHITUNG BACKEND) */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                fontSize: '1rem',
-                fontWeight: 700,
-                color: '#2D231E',
-                borderTop: '1px solid #ECE7E1',
-                paddingTop: '1.25rem'
-              }}
-            >
-              <span>Total</span>
-              <span>Dihitung backend</span>
-            </div>
+            {/* TOMBOL AKSI */}
+            {tahapCheckout === 'metode_penerimaan' && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (metodePenerimaan === 'ambil_sendiri') {
+                      setAlamatDisplay('Outlet Situbondo (Ambil Sendiri) • Jl. Raya Situbondo No. 45');
+                      setTahapCheckout('ringkasan_konfirmasi');
+                      setStatusValidasi('valid');
+                    } else {
+                      setTahapCheckout('alamat');
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#43281C',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '0.95rem',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(67, 40, 28, 0.15)',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => (e.target.style.backgroundColor = '#2F1B12')}
+                  onMouseLeave={(e) => (e.target.style.backgroundColor = '#43281C')}
+                >
+                  Lanjutkan Checkout
+                </button>
+                <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#8E7D73', marginTop: '0.65rem' }}>
+                  Pilihan disimpan pada alur pesanan yang sama.
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -243,8 +243,9 @@ func (h *HandlerReservasiStok) HandlerBuatPesanan(w http.ResponseWriter, r *http
 		}
 	}
 
-	// 3. DEFAULT KURIR JIKA KOSONG
-	if req.Kurir.TarifOngkir <= 0 {
+	// 3. DEFAULT KURIR JIKA KOSONG (Kecuali Ambil Sendiri / Pickup PPL-14)
+	isPickup := req.Kurir.IDKurir == "pickup" || req.TipeCheckout == "pickup" || strings.Contains(strings.ToLower(req.Kurir.NamaKurir), "ambil")
+	if req.Kurir.TarifOngkir <= 0 && !isPickup {
 		req.Kurir = ordergenerator.DataKurirSnapshot{
 			IDKurir:          "jne",
 			NamaKurir:        "JNE REG",
@@ -252,6 +253,14 @@ func (h *HandlerReservasiStok) HandlerBuatPesanan(w http.ResponseWriter, r *http
 			TarifOngkir:      36000,
 			EstimasiHari:     "2-3 hari",
 			TerverifikasiAPI: true,
+		}
+	} else if isPickup {
+		req.Kurir.TarifOngkir = 0
+		if req.Kurir.NamaKurir == "" {
+			req.Kurir.NamaKurir = "Ambil Sendiri di Toko"
+			req.Kurir.IDKurir = "pickup"
+			req.Kurir.KodeLayanan = "PICKUP"
+			req.Kurir.EstimasiHari = "Langsung di Toko"
 		}
 	}
 
