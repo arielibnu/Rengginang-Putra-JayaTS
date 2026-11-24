@@ -318,6 +318,26 @@ func (h *HandlerReservasiStok) HandlerBuatPesanan(w http.ResponseWriter, r *http
 		WaktuDibuat:           pesanan.DibuatPada,
 	}
 
+	// 7. Trigger catatan pemberitahuan pesanan baru masuk (WBS 1.3.3.2)
+	if h.DB != nil {
+		metodeStr := "Kirim Kurir"
+		if isPickup {
+			metodeStr = "Ambil Sendiri"
+		}
+		_, _ = h.DB.Exec(`
+			INSERT INTO notifikasi_pesanan (
+				nomor_pesanan, nomor_invoice, tipe_pemberitahuan, judul, pesan,
+				metode_penerimaan, total_transaksi, status_pesanan, sudah_dibaca, dibuat_pada
+			) VALUES (
+				?, ?, 'pesanan_masuk', CONCAT('Pesanan Baru: ', ?),
+				CONCAT('Pesanan baru masuk dari ', ?, ' dengan metode ', ?),
+				?, ?, 'baru', 0, NOW()
+			)`,
+			pesanan.NomorPesanan, pesanan.NomorInvoice, pesanan.NomorPesanan,
+			namaPenerima, metodeStr, metodeStr, pesanan.SnapshotTotal,
+		)
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(resp)
 }

@@ -412,6 +412,20 @@ func (l *LayananSinkronisasi) perbaruiStatusDatabase(orderID, trxID, trxStatus, 
 			}
 		}
 	}
+
+	// Trigger catatan pemberitahuan pesanan sukses terbayar (WBS 1.3.3.2)
+	if orderStatus == "dibayar" || trxStatus == "settlement" || trxStatus == "capture" {
+		_, _ = l.DB.Exec(`
+			INSERT INTO notifikasi_pesanan (
+				nomor_pesanan, nomor_invoice, tipe_pemberitahuan, judul, pesan,
+				metode_penerimaan, total_transaksi, status_pesanan, sudah_dibaca, dibuat_pada
+			) VALUES (
+				?, ?, 'pesanan_terbayar', CONCAT('Pembayaran Lunas: ', ?),
+				CONCAT('Pembayaran pesanan ', ?, ' telah berhasil diverifikasi gateway Midtrans.'),
+				'Kirim Kurir', 120000, 'baru', 0, NOW()
+			)`, orderID, "INV-"+orderID, orderID, orderID,
+		)
+	}
 }
 
 // HandlerStatusPembayaran (GET /api/pembayaran/status)

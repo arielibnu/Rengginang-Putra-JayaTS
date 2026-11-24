@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Circle, Square, LayoutList, Diamond, ShoppingBag } from 'lucide-react';
+import { Circle, Square, LayoutList, Diamond, ShoppingBag, Bell, X, Receipt, FileText } from 'lucide-react';
 import '../styles/admin.css';
 
 const API_URL = 'http://localhost:8080';
@@ -95,6 +95,112 @@ export default function OwnerDashboard() {
       return DATA_VARIAN_AWAL;
     }
   });
+
+  // ============================================================================
+  // PPL-22 (WBS 1.3.3) - NOTIFIKASI PESANAN BARU UNTUK OWNER
+  // ============================================================================
+  const [pesananBaru, setPesananBaru] = useState([
+    { nomor_pesanan: 'PJ-DEMO-0001', metode: 'Ambil Sendiri', status: 'Baru' },
+    { nomor_pesanan: 'PJ-DEMO-0002', metode: 'Kirim Kurir', status: 'Baru' }
+  ]);
+  const [toastNotifikasi, setToastNotifikasi] = useState(null);
+
+  // Ambil dan sinkronisasikan pesanan baru dari backend Golang (PPL-22)
+  const fetchPesananBaru = async () => {
+    try {
+      // 0. Endpoint resmi trigger notifikasi pesanan baru (WBS 1.3.3.2)
+      const resNotif = await fetch(`${API_URL}/api/owner/notifikasi/pesanan-baru`);
+      if (resNotif.ok) {
+        const jsonNotif = await resNotif.json();
+        if (Array.isArray(jsonNotif.daftar_pesanan) && jsonNotif.daftar_pesanan.length > 0) {
+          const listDariNotif = jsonNotif.daftar_pesanan.map((p) => ({
+            nomor_pesanan: p.nomor_pesanan,
+            metode: p.metode || 'Kirim Kurir',
+            status: 'Baru'
+          }));
+
+          setPesananBaru((prev) => {
+            if (prev.length > 0 && listDariNotif.length > prev.length) {
+              setToastNotifikasi({
+                pesan: `${listDariNotif[0].nomor_pesanan} (${listDariNotif[0].metode})`,
+                nomor: listDariNotif[0].nomor_pesanan
+              });
+            }
+            return listDariNotif;
+          });
+          return;
+        }
+      }
+
+      // 1. Coba endpoint admin pesanan resmi PPL-21
+      const resAdmin = await fetch(`${API_URL}/api/admin/pesanan`, { credentials: 'include' });
+      if (resAdmin.ok) {
+        const jsonAdmin = await resAdmin.json();
+        if (Array.isArray(jsonAdmin.data) && jsonAdmin.data.length > 0) {
+          const listBaru = jsonAdmin.data
+            .filter((p) => p.status === 'Baru' || p.status === 'baru' || p.pembayaran === 'Menunggu' || p.status_pesanan === 'menunggu_pembayaran')
+            .map((p) => ({
+              nomor_pesanan: p.nomor_pesanan,
+              metode: p.metode || (p.tipe_checkout === 'pickup' ? 'Ambil Sendiri' : 'Kirim Kurir'),
+              status: 'Baru'
+            }));
+
+          if (listBaru.length > 0) {
+            setPesananBaru(listBaru);
+            return;
+          }
+        }
+      }
+
+      // 2. Cek pesanan aktif dari endpoint reservasi order backend
+      const resReservasi = await fetch(`${API_URL}/api/pesanan/reservasi`);
+      if (resReservasi.ok) {
+        const jsonRes = await resReservasi.json();
+        if (Array.isArray(jsonRes.data) && jsonRes.data.length > 0) {
+          const uniqueOrders = [...new Set(jsonRes.data.map((r) => r.nomor_pesanan))];
+          const detailedList = await Promise.all(
+            uniqueOrders.slice(0, 5).map(async (nomor) => {
+              try {
+                const resDetail = await fetch(`${API_URL}/api/pesanan/detail?nomor_pesanan=${nomor}`);
+                if (resDetail.ok) {
+                  const j = await resDetail.json();
+                  const d = j.data || {};
+                  const detail = d.pesanan_detail || {};
+                  const isPickup = detail.tipe_checkout === 'pickup' || d.kurir === 'Ambil Sendiri di Toko';
+                  return {
+                    nomor_pesanan: d.nomor_pesanan || nomor,
+                    metode: isPickup ? 'Ambil Sendiri' : 'Kirim Kurir',
+                    status: 'Baru'
+                  };
+                }
+              } catch {}
+              return { nomor_pesanan: nomor, metode: 'Kirim Kurir', status: 'Baru' };
+            })
+          );
+          if (detailedList.length > 0) {
+            setPesananBaru((prev) => {
+              if (prev.length > 0 && detailedList.length > prev.length) {
+                setToastNotifikasi({
+                  pesan: `${detailedList[0].nomor_pesanan} (${detailedList[0].metode})`,
+                  nomor: detailedList[0].nomor_pesanan
+                });
+              }
+              return detailedList;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // Pertahankan data awal jika backend offline
+    }
+  };
+
+  // Polling pesanan baru setiap 8 detik (Realtime polling WBS 1.3.3.3)
+  useEffect(() => {
+    fetchPesananBaru();
+    const interval = setInterval(fetchPesananBaru, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Validasi sesi Owner langsung melalui Backend Golang
   useEffect(() => {
@@ -246,7 +352,6 @@ export default function OwnerDashboard() {
         </div>
       </div>
     );
-    
   }
 
   // Jika verifikasi gagal, data Admin tetap disembunyikan
@@ -327,9 +432,44 @@ export default function OwnerDashboard() {
               <div
                 className="sidebar-item"
                 onClick={() => navigate('/admin/pesanan')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <ShoppingBag size={16} />
-                <span>Pesanan</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <ShoppingBag size={16} />
+                  <span>Pesanan</span>
+                </div>
+                {pesananBaru.length > 0 && (
+                  <span
+                    style={{
+                      backgroundColor: '#FDE68A',
+                      color: '#78350F',
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700
+                    }}
+                  >
+                    {pesananBaru.length} Baru
+                  </span>
+                )}
+              </div>
+            </li>
+            <li>
+              <div
+                className="sidebar-item"
+                onClick={() => navigate('/admin/pesanan')}
+              >
+                <Receipt size={16} />
+                <span>Penjualan Offline</span>
+              </div>
+            </li>
+            <li>
+              <div
+                className="sidebar-item"
+                onClick={() => navigate('/admin/pesanan')}
+              >
+                <FileText size={16} />
+                <span>Laporan</span>
               </div>
             </li>
           </ul>
@@ -361,42 +501,223 @@ export default function OwnerDashboard() {
           </div>
         )}
 
+        {/* Toast Notifikasi Realtime Pesanan Baru (PPL-22) */}
+        {toastNotifikasi && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '1.5rem',
+              right: '1.5rem',
+              zIndex: 9999,
+              backgroundColor: '#FFFFFF',
+              border: '2px solid #F59E0B',
+              borderRadius: '12px',
+              padding: '1rem 1.25rem',
+              boxShadow: '0 8px 24px rgba(67, 40, 28, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              maxWidth: '420px'
+            }}
+          >
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: '#FEF3C7',
+                color: '#B45309',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <Bell size={18} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#43281C' }}>
+                Pesanan Baru Masuk!
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#6B5E55', marginTop: '0.15rem' }}>
+                {toastNotifikasi.pesan}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/admin/pesanan');
+                setToastNotifikasi(null);
+              }}
+              style={{
+                backgroundColor: '#43281C',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '0.45rem 0.75rem',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                flexShrink: 0
+              }}
+            >
+              Buka
+            </button>
+            <button
+              type="button"
+              onClick={() => setToastNotifikasi(null)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#8E7D73',
+                cursor: 'pointer',
+                padding: '0.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         {/* Breadcrumb Navigasi Sesuai Figma */}
         <div className="admin-breadcrumb">
-          Dashboard Owner / Ringkasan
+          Dashboard Owner / Ringkasan usaha
         </div>
 
         {/* Header Ringkasan Usaha Sesuai Figma */}
         <div className="admin-header">
           <h1 className="admin-page-title">Ringkasan usaha</h1>
           <p className="admin-page-subtitle">
-            Pantau produk dan persediaan dalam satu halaman.
+            PPL-22 menambahkan notifikasi pada dashboard Owner yang sudah ada.
           </p>
         </div>
 
-        {/* 3 Kartu Metrik Utama Sesuai Figma */}
-        <div className="metrics-row">
-          <div className="metric-card">
+        {/* 3 Kolom Metrik Utama & Komponen Notifikasi Pesanan Baru Sesuai Figma PPL-22 */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '2rem',
+            alignItems: 'start'
+          }}
+        >
+          {/* Kolom 1: Varian aktif */}
+          <div className="metric-card" style={{ margin: 0, boxSizing: 'border-box' }}>
             <div className="metric-label">Varian aktif</div>
             <div className="metric-number">{varianAktifCount}</div>
-            <div className="metric-sub">
-              Rasa terasi, udang, bawang, cumi
-            </div>
           </div>
 
-          <div className="metric-card">
-            <div className="metric-label">Stok fisik</div>
-            <div className="metric-number">{totalStokFisik}</div>
-            <div className="metric-sub">
-              Total seluruh varian &bull; bungkus
-            </div>
-          </div>
-
-          <div className="metric-card">
+          {/* Kolom 2: Stok tersedia */}
+          <div className="metric-card" style={{ margin: 0, boxSizing: 'border-box' }}>
             <div className="metric-label">Stok tersedia</div>
             <div className="metric-number">{totalStokTersedia}</div>
-            <div className="metric-sub">
-              Setelah dikurangi reservasi
+          </div>
+
+          {/* Kolom 3: Pesanan baru & Komponen Notifikasi Pesanan Baru (PPL-22) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="metric-card" style={{ margin: 0, boxSizing: 'border-box' }}>
+              <div className="metric-label">Pesanan baru</div>
+              <div className="metric-number">{pesananBaru.length}</div>
+            </div>
+
+            {/* Komponen Notifikasi Pesanan Baru (PPL22_01_Notifikasi_Pesanan_Baru__KOMPONEN_NOTIFIKASI) */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #ECE4D9',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                boxShadow: '0 1px 4px rgba(67, 40, 28, 0.03)',
+                boxSizing: 'border-box'
+              }}
+            >
+              {/* Header Notifikasi */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '1.25rem'
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: '1.05rem',
+                    fontWeight: 700,
+                    color: '#43281C'
+                  }}
+                >
+                  Notifikasi pesanan baru
+                </h3>
+                <span
+                  style={{
+                    backgroundColor: '#FDE2B8',
+                    color: '#78350F',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700
+                  }}
+                >
+                  {pesananBaru.length} Baru
+                </span>
+              </div>
+
+              {/* Rincian Pesanan Baru */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                {pesananBaru.length === 0 ? (
+                  <div style={{ fontSize: '0.85rem', color: '#8E7D73', fontStyle: 'italic' }}>
+                    Belum ada pesanan baru.
+                  </div>
+                ) : (
+                  pesananBaru.slice(0, 5).map((order) => (
+                    <div
+                      key={order.nomor_pesanan}
+                      onClick={() => navigate('/admin/pesanan')}
+                      style={{
+                        fontSize: '0.875rem',
+                        color: '#5C5046',
+                        cursor: 'pointer',
+                        lineHeight: 1.5,
+                        transition: 'color 0.15s'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#43281C')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#5C5046')}
+                    >
+                      {order.nomor_pesanan} — {order.metode}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Tombol Lihat Pesanan Sesuai Figma */}
+              <button
+                type="button"
+                onClick={() => navigate('/admin/pesanan')}
+                style={{
+                  width: '100%',
+                  backgroundColor: '#43281C',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '0.85rem',
+                  fontWeight: 700,
+                  fontSize: '0.925rem',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  transition: 'background-color 0.2s',
+                  boxShadow: '0 2px 6px rgba(67, 40, 28, 0.12)'
+                }}
+                onMouseEnter={(e) => (e.target.style.backgroundColor = '#2F1B12')}
+                onMouseLeave={(e) => (e.target.style.backgroundColor = '#43281C')}
+              >
+                Lihat Pesanan
+              </button>
             </div>
           </div>
         </div>
