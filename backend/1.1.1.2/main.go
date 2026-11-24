@@ -30,6 +30,8 @@ import (
 	tagihanmidtrans "rengginang-putra-jaya/auth/1.3.1.2"
 	sinkronisasimidtrans "rengginang-putra-jaya/auth/1.3.1.4"
 	notifikasipesanan "rengginang-putra-jaya/auth/1.3.3.2"
+	penjualanoffline "rengginang-putra-jaya/auth/1.3.5.3"
+	flagpemisah "rengginang-putra-jaya/auth/1.3.5.4"
 )
 
 func main() {
@@ -731,6 +733,37 @@ func main() {
 	http.HandleFunc(
 		"/api/owner/notifikasi/trigger",
 		layananNotifikasi.HandlerTrigger,
+	)
+
+	// ==========================================
+	// WBS 1.3.5.3 & 1.3.5.4 - PENJUALAN OFFLINE & FLAG PEMISAH (PPL-24)
+	// ==========================================
+
+	layananPenjualanOffline := penjualanoffline.InisialisasiLayanan(db)
+	layananPemisahFlag := flagpemisah.InisialisasiLayanan(db)
+
+	// POST / GET /api/admin/penjualan-offline (Kasir Toko Langsung WBS 1.3.5.3)
+	http.HandleFunc(
+		"/api/admin/penjualan-offline",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				layananPenjualanOffline.HandlerDaftarPenjualan(w, r)
+			} else {
+				layananPenjualanOffline.HandlerSimpanPenjualan(w, r)
+			}
+		},
+	)
+
+	// GET /api/admin/transaksi/audit-flag (Audit Flag Nyata vs Sandbox WBS 1.3.5.4)
+	http.HandleFunc(
+		"/api/admin/transaksi/audit-flag",
+		layananPemisahFlag.HandlerAudit,
+	)
+
+	// POST /api/admin/transaksi/validasi-flag (Validasi Flag WBS 1.3.5.4)
+	http.HandleFunc(
+		"/api/admin/transaksi/validasi-flag",
+		layananPemisahFlag.HandlerValidasiFlag,
 	)
 
 	// ==========================================

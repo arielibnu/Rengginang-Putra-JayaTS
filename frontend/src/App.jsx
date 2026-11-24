@@ -28,6 +28,9 @@ import ModalBiaya from './pages/ModalBiaya';
 import DaftarPesananOwner from './pages/DaftarPesananOwner';
 import DetailPesananOwner from './pages/DetailPesananOwner';
 
+// PPL-24: Penjualan Offline (Kasir Toko)
+import PenjualanOffline from './pages/PenjualanOffline';
+
 // PPL-01: Login Owner dan Dashboard
 import LoginOwner from './pages/LoginOwner';
 import OwnerDashboard from './pages/OwnerDashboard';
@@ -202,6 +205,20 @@ function AppContent() {
         <Route
           path="/owner/pesanan/:id"
           element={<DetailPesananOwner />}
+        />
+
+        {/* PPL-24: Penjualan Offline (Kasir Toko) */}
+        <Route
+          path="/admin/penjualan-offline"
+          element={<PenjualanOffline />}
+        />
+        <Route
+          path="/admin/offline"
+          element={<PenjualanOffline />}
+        />
+        <Route
+          path="/admin/kasir"
+          element={<PenjualanOffline />}
         />
       </Routes>
     );

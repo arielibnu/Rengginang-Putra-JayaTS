@@ -364,8 +364,7 @@ export default function DaftarPesananOwner() {
             <li>
               <div
                 className="sidebar-item"
-                onClick={() => navigate('/admin/dashboard')}
-                style={{ opacity: 0.7 }}
+                onClick={() => navigate('/admin/penjualan-offline')}
               >
                 <Store size={16} />
                 <span>Penjualan Offline</span>
