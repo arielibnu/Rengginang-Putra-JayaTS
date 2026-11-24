@@ -29,6 +29,7 @@ import (
 	pesananowner "rengginang-putra-jaya/auth/1.2.10.2"
 	tagihanmidtrans "rengginang-putra-jaya/auth/1.3.1.2"
 	sinkronisasimidtrans "rengginang-putra-jaya/auth/1.3.1.4"
+	notifikasipesanan "rengginang-putra-jaya/auth/1.3.3.2"
 )
 
 func main() {
@@ -700,6 +701,36 @@ func main() {
 	http.HandleFunc(
 		"/api/pembayaran/simulasi-bayar",
 		layananSinkronisasiMidtrans.HandlerSimulasiBayar,
+	)
+
+	// ==========================================
+	// WBS 1.3.3.2 - NOTIFIKASI PESANAN BARU OWNER (PPL-22)
+	// ==========================================
+
+	layananNotifikasi := notifikasipesanan.InisialisasiLayanan(db)
+
+	// GET /api/owner/notifikasi/pesanan-baru (Komponen Notifikasi Pesanan Baru Figma PPL-22)
+	http.HandleFunc(
+		"/api/owner/notifikasi/pesanan-baru",
+		layananNotifikasi.HandlerPesananBaru,
+	)
+
+	// GET /api/owner/notifikasi (Daftar semua notifikasi pesanan)
+	http.HandleFunc(
+		"/api/owner/notifikasi",
+		layananNotifikasi.HandlerDaftarSemua,
+	)
+
+	// POST /api/owner/notifikasi/baca (Tandai dibaca saat Owner membuka pesanan)
+	http.HandleFunc(
+		"/api/owner/notifikasi/baca",
+		layananNotifikasi.HandlerTandaiDibaca,
+	)
+
+	// POST /api/owner/notifikasi/trigger (Trigger pemberitahuan pesanan baru / pembayaran)
+	http.HandleFunc(
+		"/api/owner/notifikasi/trigger",
+		layananNotifikasi.HandlerTrigger,
 	)
 
 	// ==========================================
