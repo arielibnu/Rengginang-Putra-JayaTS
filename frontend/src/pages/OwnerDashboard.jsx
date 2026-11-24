@@ -457,7 +457,7 @@ export default function OwnerDashboard() {
             <li>
               <div
                 className="sidebar-item"
-                onClick={() => navigate('/admin/pesanan')}
+                onClick={() => navigate('/admin/penjualan-offline')}
               >
                 <Receipt size={16} />
                 <span>Penjualan Offline</span>
