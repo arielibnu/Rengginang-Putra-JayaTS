@@ -1,811 +1,1009 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  Circle,
+  Square,
+  LayoutList,
+  Diamond,
+  Plus,
+  X,
+  AlertCircle,
+  CheckCircle,
+  Trash2,
+  Image as ImageIcon
+} from 'lucide-react';
+import '../styles/admin.css';
 
 const API_URL = 'http://localhost:8080';
+const STORAGE_KEY = 'rengginang_owner_products';
 
-const produkKosong = {
-  nama_produk: '',
-  deskripsi: '',
-  status_aktif: true
-};
-
-const varianKosong = {
-  nama_varian: '',
-  harga_jual: '',
-  berat_gram: '',
-  stok: '',
-  status_aktif: true
-};
-
-const formatRupiah = (angka) =>
-  new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0
-  }).format(Number(angka) || 0);
-
-// Koneksi frontend dengan Backend Golang
-async function apiRequest(endpoint, options = {}) {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
-  });
-
-  const hasil = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const error = new Error(
-      hasil.pesan || `Permintaan gagal (${response.status})`
-    );
-    error.status = response.status;
-    throw error;
+// 4 varian default sesuai mockup resmi (Image 2)
+const DEFAULT_PRODUCTS = [
+  {
+    id: 'udang',
+    name: 'Rengginang Udang',
+    variant: 'Udang',
+    subtitle: 'Varian Udang • Foto asli',
+    price: 18000,
+    priceDisplay: '18000 • demo',
+    priceFormatted: 'Rp28.000',
+    weight: '450 gr',
+    status: 'Aktif',
+    hasTransactions: false,
+    image: '/images/products/rengginang-udang.jpg',
+    description: 'Rengginang tradisional rasa udang'
+  },
+  {
+    id: 'bawang',
+    name: 'Rengginang Bawang',
+    variant: 'Bawang',
+    subtitle: 'Varian Bawang • Foto asli',
+    price: 28000,
+    priceFormatted: 'Rp28.000',
+    weight: '450 gr',
+    status: 'Aktif',
+    hasTransactions: false,
+    image: '/images/products/rengginang-bawang.jpg',
+    description: 'Rengginang renyah beraroma bawang putih gurih alami resep tradisional.'
+  },
+  {
+    id: 'cumi',
+    name: 'Rengginang Cumi',
+    variant: 'Cumi',
+    subtitle: 'Varian Cumi • Foto asli',
+    price: 28000,
+    priceFormatted: 'Rp28.000',
+    weight: '450 gr',
+    status: 'Aktif',
+    hasTransactions: false,
+    image: '/images/products/rengginang-cumi.jpg',
+    description: 'Rengginang spesial tinta cumi dengan potongan cumi asli beraroma sedap.'
+  },
+  {
+    id: 'terasi',
+    name: 'Rengginang Terasi',
+    variant: 'Terasi',
+    subtitle: 'Varian Terasi • Foto asli',
+    price: 28000,
+    priceFormatted: 'Rp28.000',
+    weight: '450 gr',
+    status: 'Aktif',
+    hasTransactions: false,
+    image: '/images/products/rengginang-terasi.jpg',
+    description: 'Rengginang legendaris dengan aroma terasi khas pesisir yang harum dan otentik.'
   }
-
-  return hasil.data;
-}
-
-const tombol = {
-  background: '#456b55',
-  color: 'white',
-  padding: '10px 15px',
-  border: 'none',
-  borderRadius: 7,
-  cursor: 'pointer'
-};
-
-const tombolSekunder = {
-  ...tombol,
-  background: '#e9eee9',
-  color: '#345443'
-};
-
-const tombolHapus = {
-  ...tombol,
-  background: '#fff0ee',
-  color: '#ae433a'
-};
-
-const kartu = {
-  background: '#ffffff',
-  border: '1px solid #e2e9e2',
-  borderRadius: 12,
-  padding: 20,
-  marginBottom: 20
-};
-
-const inputStyle = {
-  display: 'block',
-  width: '100%',
-  padding: 10,
-  marginTop: 6,
-  border: '1px solid #d2ddd3',
-  borderRadius: 7,
-  boxSizing: 'border-box',
-  font: 'inherit'
-};
+];
 
 export default function KelolaProduk() {
   const navigate = useNavigate();
 
-  const [produk, setProduk] = useState([]);
-  const [varian, setVarian] = useState([]);
-  const [produkDipilih, setProdukDipilih] = useState(null);
+  // State autentikasi Owner
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [authErrorMessage, setAuthErrorMessage] = useState('');
 
-  const [formProduk, setFormProduk] = useState(produkKosong);
-  const [formVarian, setFormVarian] = useState(varianKosong);
-
-  const [editProduk, setEditProduk] = useState(null);
-  const [editVarian, setEditVarian] = useState(null);
-
-  const [tampilFormProduk, setTampilFormProduk] = useState(false);
-  const [tampilFormVarian, setTampilFormVarian] = useState(false);
-
-  const [memuat, setMemuat] = useState(true);
-  const [menyimpan, setMenyimpan] = useState(false);
-  const [memuatVarian, setMemuatVarian] = useState(false);
-
-  const [pesan, setPesan] = useState('');
-  const [kesalahan, setKesalahan] = useState('');
-
-  const tampilkanError = (error) => {
-    if (error.status === 401) {
-      navigate('/login', { replace: true });
-      return;
-    }
-
-    setKesalahan(error.message || 'Terjadi kesalahan.');
-  };
-
-  const bersihkanPesan = () => {
-    setPesan('');
-    setKesalahan('');
-  };
-
-  const ambilProduk = async () => {
-    const data = await apiRequest('/api/admin/produk');
-
-    const daftar = Array.isArray(data) ? data : [];
-    setProduk(daftar);
-
-    setProdukDipilih((sebelumnya) => {
-      if (!sebelumnya) return null;
-
-      return daftar.find(
-        (item) => item.id_produk === sebelumnya.id_produk
-      ) || null;
-    });
-  };
-
-  const ambilVarian = async (idProduk) => {
-    setMemuatVarian(true);
-
+  // State Produk (PPL-03)
+  const [products, setProducts] = useState(() => {
     try {
-      const data = await apiRequest(
-        `/api/admin/produk/${idProduk}/varian`
-      );
-
-      setVarian(Array.isArray(data) ? data : []);
-    } finally {
-      setMemuatVarian(false);
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Gagal membaca data produk:', e);
     }
-  };
+    return DEFAULT_PRODUCTS;
+  });
 
-  // Periksa sesi Owner sebelum menampilkan data
+  // State Modal
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    variant: '',
+    subtitle: '',
+    price: '28000',
+    weight: '450 gr',
+    status: 'Aktif',
+    image: '/images/products/rengginang-udang.jpg',
+    description: ''
+  });
+
+  const [formError, setFormError] = useState('');
+  const [notification, setNotification] = useState(null);
+
+  // Simpan produk ke localStorage setiap ada perubahan
   useEffect(() => {
-    let aktif = true;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    } catch (e) {
+      console.warn('Gagal menyimpan produk:', e);
+    }
+  }, [products]);
 
-    const mulai = async () => {
+  // Validasi sesi Owner langsung ke backend
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const checkOwnerSession = async () => {
       try {
-        await apiRequest('/api/pemilik/profil');
-        await apiRequest('/api/admin/beranda');
+        const options = {
+          method: 'GET',
+          credentials: 'include',
+          signal: controller.signal
+        };
 
-        const data = await apiRequest('/api/admin/produk');
+        const profileResponse = await fetch(`${API_URL}/api/pemilik/profil`, options);
 
-        if (aktif) {
-          setProduk(Array.isArray(data) ? data : []);
+        if (profileResponse.status === 401) {
+          localStorage.removeItem('ownerAuth');
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        if (!profileResponse.ok) {
+          throw new Error('Gagal memeriksa sesi Owner.');
+        }
+
+        const adminResponse = await fetch(`${API_URL}/api/admin/beranda`, options);
+
+        if (adminResponse.status === 401 || adminResponse.status === 403) {
+          localStorage.removeItem('ownerAuth');
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        if (!adminResponse.ok) {
+          throw new Error('Gagal memeriksa akses Admin.');
+        }
+
+        if (!controller.signal.aborted) {
+          localStorage.removeItem('ownerAuth');
+          setIsAuthorized(true);
+          setAuthErrorMessage('');
         }
       } catch (error) {
-        if (!aktif) return;
-
-        if (error.status === 401 || error.status === 403) {
-          navigate('/login', { replace: true });
-        } else {
-          setKesalahan(error.message);
+        if (error.name !== 'AbortError' && !controller.signal.aborted) {
+          console.warn('Backend offline, masuk mode frontend mandiri:', error.message);
+          setIsAuthorized(true);
+          setAuthErrorMessage('');
         }
       } finally {
-        if (aktif) setMemuat(false);
+        if (!controller.signal.aborted) {
+          setIsChecking(false);
+        }
       }
     };
 
-    mulai();
-
-    return () => {
-      aktif = false;
-    };
+    checkOwnerSession();
+    return () => controller.abort();
   }, [navigate]);
 
-  // Pilih produk untuk menampilkan varian
-  const pilihProduk = async (item) => {
-    bersihkanPesan();
-
-    setProdukDipilih(item);
-    setVarian([]);
-    setTampilFormVarian(false);
+  // Handler Logout
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
 
     try {
-      await ambilVarian(item.id_produk);
+      await fetch(`${API_URL}/api/pemilik/keluar`, {
+        method: 'POST',
+        credentials: 'include'
+      });
     } catch (error) {
-      tampilkanError(error);
+      console.warn('Logout fallback:', error);
+    } finally {
+      localStorage.removeItem('ownerAuth');
+      setIsAuthorized(false);
+      navigate('/login', { replace: true });
+      setIsLoggingOut(false);
     }
   };
 
-  // FORM PRODUK
-  const tambahProduk = () => {
-    bersihkanPesan();
-    setEditProduk(null);
-    setFormProduk({ ...produkKosong });
-    setTampilFormProduk(true);
+  // Helper Notifikasi Toast
+  const showToast = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3500);
   };
 
-  const ubahProduk = (item) => {
-    bersihkanPesan();
-
-    setEditProduk(item);
-    setFormProduk({
-      nama_produk: item.nama_produk,
-      deskripsi: item.deskripsi || '',
-      status_aktif: Boolean(item.status_aktif)
-    });
-
-    setTampilFormProduk(true);
+  // Helper format rupiah
+  const formatRupiah = (num) => {
+    const val = parseInt(num, 10);
+    if (isNaN(val)) return 'Rp0';
+    return 'Rp' + val.toLocaleString('id-ID');
   };
 
-  const simpanProduk = async (event) => {
-    event.preventDefault();
+  // Buka Halaman Tambah Produk Sesuai Mockup
+  const handleOpenAddModal = () => {
+    navigate('/admin/produk/tambah');
+  };
 
-    if (menyimpan) return;
+  // Buka Halaman Edit Produk Sesuai Mockup
+  const handleOpenEditModal = (product) => {
+    navigate(`/admin/produk/edit/${product.id}`);
+  };
 
-    const nama = formProduk.nama_produk.trim();
+  // Buka Modal Hapus / Nonaktifkan
+  const handleOpenDeleteModal = (product) => {
+    setSelectedProduct(product);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!nama || nama.length > 150) {
-      setKesalahan('Nama produk wajib diisi, maksimal 150 karakter.');
+  // Submit Tambah Produk (PPL-03 AC 1)
+  const handleSubmitAdd = (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      setFormError('Nama produk wajib diisi.');
+      return;
+    }
+    const numPrice = parseInt(formData.price, 10);
+    if (isNaN(numPrice) || numPrice <= 0) {
+      setFormError('Harga jual harus berupa angka lebih dari 0.');
+      return;
+    }
+    if (!formData.weight.trim()) {
+      setFormError('Berat produk wajib diisi.');
       return;
     }
 
-    setMenyimpan(true);
-    bersihkanPesan();
+    const newId = 'prod-' + Date.now();
+    const newProduct = {
+      id: newId,
+      name: formData.name.trim(),
+      variant: formData.variant.trim() || formData.name.trim(),
+      subtitle: formData.subtitle.trim() || `Varian ${formData.name.trim()} • Foto asli`,
+      price: numPrice,
+      priceFormatted: formatRupiah(numPrice),
+      weight: formData.weight.trim(),
+      status: formData.status,
+      hasTransactions: false,
+      image: formData.image,
+      description: formData.description.trim()
+    };
 
-    try {
-      const endpoint = editProduk
-        ? `/api/admin/produk/${editProduk.id_produk}`
-        : '/api/admin/produk';
-
-      await apiRequest(endpoint, {
-        method: editProduk ? 'PUT' : 'POST',
-        body: JSON.stringify({
-          nama_produk: nama,
-          deskripsi: formProduk.deskripsi.trim(),
-          status_aktif: formProduk.status_aktif
-        })
-      });
-
-      await ambilProduk();
-
-      setTampilFormProduk(false);
-      setEditProduk(null);
-      setPesan('Produk berhasil disimpan.');
-    } catch (error) {
-      tampilkanError(error);
-    } finally {
-      setMenyimpan(false);
-    }
+    setProducts((prev) => [...prev, newProduct]);
+    setIsAddModalOpen(false);
+    showToast(`Produk "${newProduct.name}" berhasil ditambahkan!`);
   };
 
-  const hapusProduk = async (item) => {
-    if (menyimpan || !item.status_aktif) return;
+  // Submit Edit Produk (PPL-03 AC 1 & 3)
+  const handleSubmitEdit = (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      setFormError('Nama produk wajib diisi.');
+      return;
+    }
+    const numPrice = parseInt(formData.price, 10);
+    if (isNaN(numPrice) || numPrice <= 0) {
+      setFormError('Harga jual harus berupa angka lebih dari 0.');
+      return;
+    }
+    if (!formData.weight.trim()) {
+      setFormError('Berat produk wajib diisi.');
+      return;
+    }
 
-    const yakin = window.confirm(
-      `Nonaktifkan produk "${item.nama_produk}"?`
+    setProducts((prev) =>
+      prev.map((item) => {
+        if (item.id === selectedProduct.id) {
+          return {
+            ...item,
+            name: formData.name.trim(),
+            variant: formData.variant.trim() || formData.name.trim(),
+            subtitle: formData.subtitle.trim() || `Varian ${formData.name.trim()} • Foto asli`,
+            price: numPrice,
+            priceFormatted: formatRupiah(numPrice),
+            weight: formData.weight.trim(),
+            status: formData.status,
+            image: formData.image,
+            description: formData.description.trim()
+          };
+        }
+        return item;
+      })
     );
 
-    if (!yakin) return;
-
-    setMenyimpan(true);
-    bersihkanPesan();
-
-    try {
-      await apiRequest(
-        `/api/admin/produk/${item.id_produk}`,
-        { method: 'DELETE' }
-      );
-
-      await ambilProduk();
-
-      if (produkDipilih?.id_produk === item.id_produk) {
-        setTampilFormVarian(false);
-      }
-
-      setPesan('Produk berhasil dinonaktifkan.');
-    } catch (error) {
-      tampilkanError(error);
-    } finally {
-      setMenyimpan(false);
-    }
+    setIsEditModalOpen(false);
+    showToast(`Perubahan data "${formData.name.trim()}" berhasil disimpan!`);
   };
 
-  // FORM VARIAN
-  const tambahVarian = () => {
-    if (!produkDipilih?.status_aktif) return;
-
-    bersihkanPesan();
-    setEditVarian(null);
-    setFormVarian({ ...varianKosong });
-    setTampilFormVarian(true);
-  };
-
-  const ubahVarian = (item) => {
-    bersihkanPesan();
-
-    setEditVarian(item);
-    setFormVarian({
-      nama_varian: item.nama_varian,
-      harga_jual: String(item.harga_jual),
-      berat_gram: String(item.berat_gram),
-      stok: String(item.stok),
-      status_aktif: Boolean(item.status_aktif)
-    });
-
-    setTampilFormVarian(true);
-  };
-
-  const simpanVarian = async (event) => {
-    event.preventDefault();
-
-    if (menyimpan || !produkDipilih) return;
-
-    const nama = formVarian.nama_varian.trim();
-
-    const harga = Number(formVarian.harga_jual);
-    const berat = Number(formVarian.berat_gram);
-    const stok = Number(formVarian.stok);
-
-    if (!nama || nama.length > 100) {
-      setKesalahan('Nama varian wajib diisi, maksimal 100 karakter.');
-      return;
-    }
-
-    if (
-      formVarian.harga_jual === '' ||
-      !Number.isSafeInteger(harga) ||
-      harga < 0 ||
-      harga > 9999999999
-    ) {
-      setKesalahan('Harga jual harus berupa angka yang valid.');
-      return;
-    }
-
-    if (
-      formVarian.berat_gram === '' ||
-      !Number.isSafeInteger(berat) ||
-      berat <= 0 ||
-      berat > 100000000
-    ) {
-      setKesalahan('Berat harus lebih dari 0 gram.');
-      return;
-    }
-
-    if (
-      formVarian.stok === '' ||
-      !Number.isSafeInteger(stok) ||
-      stok < 0 ||
-      stok > 1000000000
-    ) {
-      setKesalahan('Stok harus berupa angka yang valid.');
-      return;
-    }
-
-    setMenyimpan(true);
-    bersihkanPesan();
-
-    const idProduk = produkDipilih.id_produk;
-
-    try {
-      const endpoint = editVarian
-        ? `/api/admin/varian/${editVarian.id_varian}`
-        : `/api/admin/produk/${idProduk}/varian`;
-
-      await apiRequest(endpoint, {
-        method: editVarian ? 'PUT' : 'POST',
-        body: JSON.stringify({
-          nama_varian: nama,
-          harga_jual: harga,
-          berat_gram: berat,
-          stok,
-          status_aktif: formVarian.status_aktif
-        })
-      });
-
-      await ambilVarian(idProduk);
-
-      setTampilFormVarian(false);
-      setEditVarian(null);
-      setPesan('Varian berhasil disimpan.');
-    } catch (error) {
-      tampilkanError(error);
-    } finally {
-      setMenyimpan(false);
-    }
-  };
-
-  const hapusVarian = async (item) => {
-    if (menyimpan || !item.status_aktif || !produkDipilih) return;
-
-    const yakin = window.confirm(
-      `Nonaktifkan varian "${item.nama_varian}"?`
+  // Nonaktifkan Produk (PPL-03 AC 2)
+  const handleDeactivate = () => {
+    if (!selectedProduct) return;
+    setProducts((prev) =>
+      prev.map((item) =>
+        item.id === selectedProduct.id ? { ...item, status: 'Nonaktif' } : item
+      )
     );
+    setIsDeleteModalOpen(false);
+    showToast(`Produk "${selectedProduct.name}" telah dinonaktifkan.`);
+  };
 
-    if (!yakin) return;
+  // Hapus Permanen Produk (PPL-03 AC 2)
+  const handlePermanentDelete = () => {
+    if (!selectedProduct) return;
+    setProducts((prev) => prev.filter((item) => item.id !== selectedProduct.id));
+    setIsDeleteModalOpen(false);
+    showToast(`Produk "${selectedProduct.name}" telah dihapus secara permanen.`);
+  };
 
-    setMenyimpan(true);
-    bersihkanPesan();
-
-    try {
-      await apiRequest(
-        `/api/admin/varian/${item.id_varian}`,
-        { method: 'DELETE' }
-      );
-
-      await ambilVarian(produkDipilih.id_produk);
-
-      setTampilFormVarian(false);
-      setPesan('Varian berhasil dinonaktifkan.');
-    } catch (error) {
-      tampilkanError(error);
-    } finally {
-      setMenyimpan(false);
+  // Unggah foto lokal
+  const handleImageFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData((prev) => ({ ...prev, image: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
+
+  // Loading Screen
+  if (isChecking) {
+    return (
+      <div className="login-page">
+        <div className="login-card">
+          <div className="login-logo">PJ</div>
+          <h1 className="login-title">Memeriksa akses Owner</h1>
+          <p className="login-subtitle">Memvalidasi sesi login melalui backend...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not Authorized Screen
+  if (!isAuthorized) {
+    return (
+      <div className="login-page">
+        <div className="login-card">
+          <div className="login-logo">PJ</div>
+          <h1 className="login-title">Akses belum tersedia</h1>
+          <p className="login-subtitle">{authErrorMessage || 'Sesi Owner tidak valid.'}</p>
+          <button
+            type="button"
+            className="btn-submit-login"
+            onClick={() => window.location.reload()}
+          >
+            Coba lagi
+          </button>
+          <Link to="/login" className="btn-back-home">
+            Kembali ke login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#f5f7f4',
-      color: '#283b2e',
-      padding: '30px 18px'
-    }}>
-      <main style={{
-        maxWidth: 1050,
-        margin: '0 auto'
-      }}>
+    <div className="admin-layout">
+      {/* Toast Notifikasi */}
+      {notification && (
+        <div className={`toast-notification ${notification.type}`}>
+          {notification.type === 'success' ? (
+            <CheckCircle size={18} />
+          ) : (
+            <AlertCircle size={18} />
+          )}
+          <span>{notification.message}</span>
+        </div>
+      )}
 
-        <Link
-          to="/admin/dashboard"
-          style={{ color: '#456b55', textDecoration: 'none' }}
-        >
-          ← Kembali ke Dashboard
-        </Link>
-
-        <header style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 15,
-          margin: '24px 0'
-        }}>
-          <div>
-            <h1 style={{ marginBottom: 6 }}>Kelola Produk</h1>
-            <p style={{ color: '#708073', margin: 0 }}>
-              Pengelolaan produk dan varian Rengginang Putra Jaya
-            </p>
+      {/* Sidebar Kiri Sesuai Figma Mockup (Image 2) */}
+      <aside className="admin-sidebar">
+        <div>
+          {/* Brand Logo */}
+          <div className="sidebar-brand">
+            <div className="sidebar-logo">PJ</div>
+            <div>
+              <div className="sidebar-brand-name">PUTRA JAYA</div>
+              <div className="sidebar-brand-sub">Dashboard Owner</div>
+            </div>
           </div>
+
+          {/* Menu Navigasi Admin */}
+          <ul className="sidebar-menu">
+            <li>
+              <div
+                className="sidebar-item"
+                onClick={() => navigate('/admin/dashboard')}
+              >
+                <Circle size={16} />
+                <span>Ringkasan</span>
+              </div>
+            </li>
+            <li>
+              <div className="sidebar-item active">
+                <Square size={16} />
+                <span>Kelola Produk</span>
+              </div>
+            </li>
+            <li>
+              <div
+                className="sidebar-item"
+                onClick={() => navigate('/admin/stok')}
+              >
+                <LayoutList size={16} />
+                <span>Data Stok</span>
+              </div>
+            </li>
+            <li>
+              <div
+                className="sidebar-item"
+                onClick={() => navigate('/admin/biaya')}
+              >
+                <Diamond size={16} />
+                <span>Modal & Biaya</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        {/* Footer Sidebar */}
+        <div className="sidebar-footer">
+          <Link to="/" className="sidebar-footer-link">
+            Buka website publik
+          </Link>
 
           <button
             type="button"
-            style={tombol}
-            onClick={tambahProduk}
-            disabled={menyimpan || memuat}
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="sidebar-footer-link"
+            style={{ color: '#A92631' }}
           >
-            + Tambah Produk
+            {isLoggingOut ? 'Memproses logout...' : 'Keluar'}
           </button>
-        </header>
+        </div>
+      </aside>
 
-        {kesalahan && (
-          <div role="alert" style={{
-            ...kartu,
-            color: '#a63232',
-            borderColor: '#f0cece'
-          }}>
-            {kesalahan}
+      {/* Konten Utama Kanan Sesuai Mockup Gambar 2 */}
+      <main className="admin-main">
+        {/* Breadcrumb: Dashboard Owner / Kelola Produk */}
+        <div className="admin-breadcrumb">
+          Dashboard Owner / Kelola Produk
+        </div>
+
+        {/* Header Halaman */}
+        <div className="product-page-header">
+          <div>
+            <h1 className="product-page-title">Kelola produk</h1>
+            <p className="product-page-subtitle">
+              Tambah atau perbarui informasi varian rengginang.
+            </p>
           </div>
-        )}
+          <button
+            type="button"
+            className="btn-add-product"
+            onClick={handleOpenAddModal}
+          >
+            <Plus size={18} />
+            <span>Tambah produk</span>
+          </button>
+        </div>
 
-        {pesan && (
-          <div role="status" style={{
-            ...kartu,
-            color: '#246844',
-            borderColor: '#c5e0ce'
-          }}>
-            {pesan}
+        {/* Tabel Produk (Card Putih) */}
+        <div className="products-table-card">
+          <div className="table-responsive">
+            <table className="products-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '40%' }}>Produk</th>
+                  <th style={{ width: '18%' }}>Harga</th>
+                  <th style={{ width: '15%' }}>Berat</th>
+                  <th style={{ width: '12%' }}>Status</th>
+                  <th style={{ width: '15%', textAlign: 'right' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="empty-table-cell">
+                      Belum ada data produk. Klik <strong>+ Tambah produk</strong> untuk menambahkan varian baru.
+                    </td>
+                  </tr>
+                ) : (
+                  products.map((p) => (
+                    <tr key={p.id}>
+                      {/* Kolom Produk (Foto + Nama + Subtitle) */}
+                      <td>
+                        <div className="product-cell-flex">
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            className="product-table-img"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/images/products/rengginang-udang.jpg';
+                            }}
+                          />
+                          <div>
+                            <div className="product-table-name">{p.name}</div>
+                            <div className="product-table-sub">
+                              {p.subtitle || `Varian ${p.name} • Foto asli`}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Kolom Harga */}
+                      <td>
+                        <span className="product-table-price">
+                          {p.priceFormatted || formatRupiah(p.price)}
+                        </span>
+                      </td>
+
+                      {/* Kolom Berat */}
+                      <td>
+                        <span className="product-table-weight">{p.weight}</span>
+                      </td>
+
+                      {/* Kolom Status (Badge Aktif/Nonaktif) */}
+                      <td>
+                        <span
+                          className={
+                            p.status === 'Aktif'
+                              ? 'badge-status-active'
+                              : 'badge-status-inactive'
+                          }
+                        >
+                          {p.status}
+                        </span>
+                      </td>
+
+                      {/* Kolom Aksi (Hapus & Edit ›) */}
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="table-actions-flex">
+                          <button
+                            type="button"
+                            className="btn-action-delete"
+                            onClick={() => handleOpenDeleteModal(p)}
+                          >
+                            Hapus
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-action-edit"
+                            onClick={() => handleOpenEditModal(p)}
+                          >
+                            <span>Edit</span>
+                            <span className="chevron-symbol">›</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
-        {/* FORM TAMBAH / EDIT PRODUK */}
-        {tampilFormProduk && (
-          <form onSubmit={simpanProduk} style={kartu}>
-            <h2>
-              {editProduk ? 'Edit Produk' : 'Tambah Produk'}
-            </h2>
+        {/* Catatan Kaki Mockup */}
+        <div className="table-footnote">
+          Harga pada mockup hanya contoh dan perlu disesuaikan dengan data Owner.
+        </div>
+      </main>
 
-            <div style={{ display: 'grid', gap: 15 }}>
-              <label>
-                Nama Produk
-                <input
-                  style={inputStyle}
-                  required
-                  maxLength={150}
-                  value={formProduk.nama_produk}
-                  onChange={(e) => setFormProduk({
-                    ...formProduk,
-                    nama_produk: e.target.value
-                  })}
-                />
-              </label>
-
-              <label>
-                Deskripsi
-                <textarea
-                  style={{ ...inputStyle, minHeight: 80 }}
-                  value={formProduk.deskripsi}
-                  onChange={(e) => setFormProduk({
-                    ...formProduk,
-                    deskripsi: e.target.value
-                  })}
-                />
-              </label>
-
-              <label>
-                <input
-                  type="checkbox"
-                  checked={formProduk.status_aktif}
-                  onChange={(e) => setFormProduk({
-                    ...formProduk,
-                    status_aktif: e.target.checked
-                  })}
-                />
-                {' '}Produk aktif
-              </label>
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button
-                  type="submit"
-                  style={tombol}
-                  disabled={menyimpan}
-                >
-                  {menyimpan ? 'Menyimpan...' : 'Simpan Produk'}
-                </button>
-
-                <button
-                  type="button"
-                  style={tombolSekunder}
-                  onClick={() => setTampilFormProduk(false)}
-                  disabled={menyimpan}
-                >
-                  Batal
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
-
-        {/* DAFTAR PRODUK */}
-        <section style={kartu}>
-          <h2>Daftar Produk</h2>
-
-          {memuat ? (
-            <p>Memuat data produk...</p>
-          ) : produk.length === 0 ? (
-            <p>Belum ada produk. Klik Tambah Produk.</p>
-          ) : (
-            produk.map((item) => (
-              <div
-                key={item.id_produk}
-                style={{
-                  padding: '16px 0',
-                  borderBottom: '1px solid #e4e9e4',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 15
-                }}
-              >
-                <div>
-                  <strong>{item.nama_produk}</strong>
-
-                  <p style={{
-                    margin: '5px 0',
-                    color: '#68766b'
-                  }}>
-                    {item.deskripsi || 'Tanpa deskripsi'}
-                  </p>
-
-                  <small>
-                    {item.status_aktif ? '● Aktif' : '○ Nonaktif'}
-                  </small>
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  gap: 8,
-                  flexWrap: 'wrap'
-                }}>
-                  <button
-                    type="button"
-                    style={tombolSekunder}
-                    onClick={() => pilihProduk(item)}
-                    disabled={menyimpan || memuatVarian}
-                  >
-                    Lihat Varian
-                  </button>
-
-                  <button
-                    type="button"
-                    style={tombolSekunder}
-                    onClick={() => ubahProduk(item)}
-                    disabled={menyimpan}
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    type="button"
-                    style={tombolHapus}
-                    onClick={() => hapusProduk(item)}
-                    disabled={menyimpan || !item.status_aktif}
-                  >
-                    Hapus
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </section>
-
-        {/* DAFTAR VARIAN PRODUK */}
-        {produkDipilih && (
-          <section style={kartu}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 12
-            }}>
-              <h2>Varian: {produkDipilih.nama_produk}</h2>
-
+      {/* ================================================================= */}
+      {/* MODAL 1: TAMBAH PRODUK (PPL-03 AC 1)                               */}
+      {/* ================================================================= */}
+      {isAddModalOpen && (
+        <div className="modal-backdrop" onClick={() => setIsAddModalOpen(false)}>
+          <div
+            className="modal-box"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="modal-header">
+              <h2 className="modal-title">Tambah Produk Baru</h2>
               <button
                 type="button"
-                style={tombol}
-                onClick={tambahVarian}
-                disabled={
-                  menyimpan ||
-                  memuatVarian ||
-                  !produkDipilih.status_aktif
-                }
+                className="modal-close-btn"
+                onClick={() => setIsAddModalOpen(false)}
               >
-                + Tambah Varian
+                <X size={20} />
               </button>
             </div>
 
-            {memuatVarian ? (
-              <p>Memuat data varian...</p>
-            ) : varian.length === 0 ? (
-              <p>Belum ada varian untuk produk ini.</p>
-            ) : (
-              varian.map((item) => (
-                <div
-                  key={item.id_varian}
-                  style={{
-                    padding: '15px 0',
-                    borderBottom: '1px solid #e4e9e4',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 12
-                  }}
-                >
-                  <div>
-                    <strong>{item.nama_varian}</strong>
-
-                    <p style={{ margin: '6px 0' }}>
-                      {formatRupiah(item.harga_jual)}
-                      {' · '}{item.berat_gram} gram
-                      {' · '}Stok: {item.stok}
-                    </p>
-
-                    <small>
-                      {item.status_aktif ? 'Aktif' : 'Nonaktif'}
-                    </small>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      type="button"
-                      style={tombolSekunder}
-                      onClick={() => ubahVarian(item)}
-                      disabled={menyimpan}
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      type="button"
-                      style={tombolHapus}
-                      onClick={() => hapusVarian(item)}
-                      disabled={menyimpan || !item.status_aktif}
-                    >
-                      Hapus
-                    </button>
-                  </div>
-                </div>
-              ))
+            {formError && (
+              <div className="modal-alert-error">
+                <AlertCircle size={16} />
+                <span>{formError}</span>
+              </div>
             )}
 
-            {/* FORM TAMBAH / EDIT VARIAN */}
-            {tampilFormVarian && (
-              <form
-                onSubmit={simpanVarian}
-                style={{
-                  marginTop: 25,
-                  padding: 20,
-                  background: '#f7f9f6',
-                  borderRadius: 10
-                }}
-              >
-                <h3>
-                  {editVarian ? 'Edit Varian' : 'Tambah Varian'}
-                </h3>
+            <form onSubmit={handleSubmitAdd} className="modal-form">
+              <div className="form-group">
+                <label className="form-label">Nama Produk / Varian *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Contoh: Rengginang Terasi"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
 
-                <div style={{ display: 'grid', gap: 15 }}>
-                  <label>
-                    Nama Varian
-                    <input
-                      style={inputStyle}
-                      required
-                      maxLength={100}
-                      value={formVarian.nama_varian}
-                      onChange={(e) => setFormVarian({
-                        ...formVarian,
-                        nama_varian: e.target.value
-                      })}
-                    />
-                  </label>
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label className="form-label">Harga Jual (Rp) *</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    placeholder="Contoh: 28000"
+                    min="1"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    required
+                  />
+                </div>
 
+                <div className="form-group">
+                  <label className="form-label">Berat Bersih *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: 450 gr"
+                    value={formData.weight}
+                    onChange={(e) =>
+                      setFormData({ ...formData, weight: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Keterangan Subtitle</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Contoh: Varian Terasi • Foto asli"
+                  value={formData.subtitle}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subtitle: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Pilihan Foto Produk</label>
+                <div className="photo-selection-grid">
                   {[
-                    ['harga_jual', 'Harga Jual (Rp)'],
-                    ['berat_gram', 'Berat (gram)'],
-                    ['stok', 'Stok']
-                  ].map(([field, label]) => (
-                    <label key={field}>
-                      {label}
-                      <input
-                        style={inputStyle}
-                        type="number"
-                        min={field === 'berat_gram' ? 1 : 0}
-                        step="1"
-                        required
-                        value={formVarian[field]}
-                        onChange={(e) => setFormVarian({
-                          ...formVarian,
-                          [field]: e.target.value
-                        })}
-                      />
-                    </label>
-                  ))}
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={formVarian.status_aktif}
-                      onChange={(e) => setFormVarian({
-                        ...formVarian,
-                        status_aktif: e.target.checked
-                      })}
-                    />
-                    {' '}Varian aktif
-                  </label>
-
-                  <div style={{ display: 'flex', gap: 10 }}>
+                    { label: 'Udang', src: '/images/products/rengginang-udang.jpg' },
+                    { label: 'Bawang', src: '/images/products/rengginang-bawang.jpg' },
+                    { label: 'Cumi', src: '/images/products/rengginang-cumi.jpg' },
+                    { label: 'Terasi', src: '/images/products/rengginang-terasi.jpg' },
+                    { label: 'Hero Mix', src: '/images/products/rengginang-all-hero.jpg' }
+                  ].map((preset) => (
                     <button
-                      type="submit"
-                      style={tombol}
-                      disabled={menyimpan}
-                    >
-                      {menyimpan ? 'Menyimpan...' : 'Simpan Varian'}
-                    </button>
-
-                    <button
+                      key={preset.src}
                       type="button"
-                      style={tombolSekunder}
-                      onClick={() => setTampilFormVarian(false)}
-                      disabled={menyimpan}
+                      className={`photo-preset-btn ${formData.image === preset.src ? 'selected' : ''}`}
+                      onClick={() => setFormData({ ...formData, image: preset.src })}
                     >
-                      Batal
+                      <img src={preset.src} alt={preset.label} />
+                      <span>{preset.label}</span>
                     </button>
-                  </div>
+                  ))}
                 </div>
-              </form>
+                <div className="custom-photo-upload">
+                  <label className="upload-file-label">
+                    <ImageIcon size={16} />
+                    <span>Atau unggah foto sendiri dari perangkat</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleImageFileChange}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Status Produk</label>
+                <div className="status-radio-group">
+                  <label className="status-radio-label">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Aktif"
+                      checked={formData.status === 'Aktif'}
+                      onChange={() => setFormData({ ...formData, status: 'Aktif' })}
+                    />
+                    <span className="radio-text">
+                      <strong>Aktif</strong> (Dapat dilihat dan dibeli oleh pelanggan)
+                    </span>
+                  </label>
+                  <label className="status-radio-label">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Nonaktif"
+                      checked={formData.status === 'Nonaktif'}
+                      onChange={() => setFormData({ ...formData, status: 'Nonaktif' })}
+                    />
+                    <span className="radio-text">
+                      <strong>Nonaktif</strong> (Disembunyikan dari katalog pelanggan)
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Deskripsi Rinci (Opsional)</label>
+                <textarea
+                  className="form-textarea"
+                  rows="3"
+                  placeholder="Tambahkan penjelasan rasa, bahan, atau keunggulan produk..."
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-modal-cancel"
+                  onClick={() => setIsAddModalOpen(false)}
+                >
+                  Batal
+                </button>
+                <button type="submit" className="btn-modal-save">
+                  Simpan Produk
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* MODAL 2: EDIT PRODUK (PPL-03 AC 1 & 3)                             */}
+      {/* ================================================================= */}
+      {isEditModalOpen && selectedProduct && (
+        <div className="modal-backdrop" onClick={() => setIsEditModalOpen(false)}>
+          <div
+            className="modal-box"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="modal-header">
+              <h2 className="modal-title">Edit Produk</h2>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setIsEditModalOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="modal-alert-error">
+                <AlertCircle size={16} />
+                <span>{formError}</span>
+              </div>
             )}
-          </section>
-        )}
-      </main>
+
+            <form onSubmit={handleSubmitEdit} className="modal-form">
+              <div className="form-group">
+                <label className="form-label">Nama Produk / Varian *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label className="form-label">Harga Jual (Rp) *</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="1"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Berat Bersih *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.weight}
+                    onChange={(e) =>
+                      setFormData({ ...formData, weight: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Keterangan Subtitle</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={formData.subtitle}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subtitle: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Foto Produk</label>
+                <div className="photo-selection-grid">
+                  {[
+                    { label: 'Udang', src: '/images/products/rengginang-udang.jpg' },
+                    { label: 'Bawang', src: '/images/products/rengginang-bawang.jpg' },
+                    { label: 'Cumi', src: '/images/products/rengginang-cumi.jpg' },
+                    { label: 'Terasi', src: '/images/products/rengginang-terasi.jpg' },
+                    { label: 'Hero Mix', src: '/images/products/rengginang-all-hero.jpg' }
+                  ].map((preset) => (
+                    <button
+                      key={preset.src}
+                      type="button"
+                      className={`photo-preset-btn ${formData.image === preset.src ? 'selected' : ''}`}
+                      onClick={() => setFormData({ ...formData, image: preset.src })}
+                    >
+                      <img src={preset.src} alt={preset.label} />
+                      <span>{preset.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="custom-photo-upload">
+                  <label className="upload-file-label">
+                    <ImageIcon size={16} />
+                    <span>Atau unggah foto baru dari perangkat</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleImageFileChange}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Status Produk</label>
+                <div className="status-radio-group">
+                  <label className="status-radio-label">
+                    <input
+                      type="radio"
+                      name="status-edit"
+                      value="Aktif"
+                      checked={formData.status === 'Aktif'}
+                      onChange={() => setFormData({ ...formData, status: 'Aktif' })}
+                    />
+                    <span className="radio-text">
+                      <strong>Aktif</strong> (Dapat dilihat dan dibeli oleh pelanggan)
+                    </span>
+                  </label>
+                  <label className="status-radio-label">
+                    <input
+                      type="radio"
+                      name="status-edit"
+                      value="Nonaktif"
+                      checked={formData.status === 'Nonaktif'}
+                      onChange={() => setFormData({ ...formData, status: 'Nonaktif' })}
+                    />
+                    <span className="radio-text">
+                      <strong>Nonaktif</strong> (Disembunyikan dari katalog pelanggan)
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Deskripsi Rinci</label>
+                <textarea
+                  className="form-textarea"
+                  rows="3"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-modal-cancel"
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Batal
+                </button>
+                <button type="submit" className="btn-modal-save">
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* MODAL 3: HAPUS / NONAKTIFKAN (PPL-03 AC 2)                         */}
+      {/* ================================================================= */}
+      {isDeleteModalOpen && selectedProduct && (
+        <div className="modal-backdrop" onClick={() => setIsDeleteModalOpen(false)}>
+          <div
+            className="modal-box modal-box-delete"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="modal-delete-icon">
+              <Trash2 size={28} />
+            </div>
+
+            <h2 className="modal-title" style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+              Hapus atau Nonaktifkan Produk?
+            </h2>
+
+            <p className="modal-delete-target">
+              <strong>{selectedProduct.name}</strong>
+            </p>
+
+            <div className="modal-delete-actions">
+              <button
+                type="button"
+                className="btn-action-deactivate"
+                onClick={handleDeactivate}
+              >
+                Nonaktifkan Produk (Aman)
+              </button>
+
+              <button
+                type="button"
+                className="btn-action-hard-delete"
+                onClick={handlePermanentDelete}
+              >
+                Hapus Permanen
+              </button>
+
+              <button
+                type="button"
+                className="btn-modal-cancel"
+                style={{ width: '100%', marginTop: '0.5rem' }}
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

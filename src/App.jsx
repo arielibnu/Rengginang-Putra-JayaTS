@@ -16,6 +16,8 @@ import KatalogProduk from './pages/KatalogProduk';
 import KeranjangBelanja from './pages/KeranjangBelanja';
 import Checkout from './pages/Checkout';
 import KonfirmasiPesanan from './pages/KonfirmasiPesanan';
+// PPL-19: Pembayaran QRIS dan Virtual Account (Sandbox)
+import Pembayaran from './pages/Pembayaran';
 import ContactModal from './components/ContactModal';
 import LoginInfoModal from './components/LoginInfoModal';
 
@@ -32,6 +34,8 @@ import OwnerDashboard from './pages/OwnerDashboard';
 
 // PPL-03: Pengelolaan Produk dan Varian
 import KelolaProduk from './pages/KelolaProduk';
+import TambahProduk from './pages/TambahProduk';
+import EditProduk from './pages/EditProduk';
 
 // PPL-04: Pengelolaan Stok dan Riwayat Persediaan
 import DataStok from './pages/DataStok';
@@ -96,6 +100,14 @@ function AppContent() {
         <Route
           path="/admin/produk"
           element={<KelolaProduk />}
+        />
+        <Route
+          path="/admin/produk/tambah"
+          element={<TambahProduk />}
+        />
+        <Route
+          path="/admin/produk/edit/:id"
+          element={<EditProduk />}
         />
 
         {/* Data Stok PPL-04 & Peringatan Minimum PPL-05 */}
@@ -260,6 +272,24 @@ function AppContent() {
         <Route
           path="/checkout/konfirmasi"
           element={<KonfirmasiPesanan />}
+        />
+
+        {/* PPL-19: Pembayaran QRIS dan Virtual Account (Sandbox) */}
+        <Route
+          path="/pembayaran"
+          element={<Pembayaran />}
+        />
+        <Route
+          path="/pembayaran/:id"
+          element={<Pembayaran />}
+        />
+        <Route
+          path="/pembayaran-sandbox"
+          element={<Pembayaran />}
+        />
+        <Route
+          path="/checkout/pembayaran"
+          element={<Pembayaran />}
         />
 
         {/* Login pelanggan PPL-02 */}

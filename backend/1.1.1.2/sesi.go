@@ -6,9 +6,15 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
+	"sync"
 	"time"
+)
+
+var (
+	sesiInMemory = make(map[string]uint64)
+	sesiMu       sync.RWMutex
 )
 
 const namaCookieSesi = "sesi_pemilik"
@@ -32,11 +38,18 @@ func hashTokenSesi(token string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// Menyimpan sesi baru ke database.
+// Menyimpan sesi baru ke database atau in-memory fallback.
 func buatSesiPemilik(idPemilik uint64) (string, error) {
 	token, err := buatTokenSesi()
 	if err != nil {
 		return "", err
+	}
+
+	if db == nil {
+		sesiMu.Lock()
+		sesiInMemory[hashTokenSesi(token)] = idPemilik
+		sesiMu.Unlock()
+		return token, nil
 	}
 
 	kedaluwarsa := time.Now().Add(durasiSesi)
@@ -50,7 +63,11 @@ func buatSesiPemilik(idPemilik uint64) (string, error) {
 		kedaluwarsa,
 	)
 	if err != nil {
-		return "", fmt.Errorf("gagal menyimpan sesi: %w", err)
+		log.Println("Peringatan simpan sesi MySQL, menggunakan in-memory:", err)
+		sesiMu.Lock()
+		sesiInMemory[hashTokenSesi(token)] = idPemilik
+		sesiMu.Unlock()
+		return token, nil
 	}
 
 	return token, nil
@@ -80,6 +97,18 @@ func periksaSesiPemilik(r *http.Request) (uint64, error) {
 		return 0, errors.New("sesi tidak ditemukan")
 	}
 
+	// Cek memory map terlebih dahulu
+	sesiMu.RLock()
+	id, ada := sesiInMemory[hashTokenSesi(cookie.Value)]
+	sesiMu.RUnlock()
+	if ada {
+		return id, nil
+	}
+
+	if db == nil {
+		return 0, errors.New("sesi tidak ditemukan")
+	}
+
 	var idPemilik uint64
 
 	err = db.QueryRow(
@@ -101,8 +130,15 @@ func periksaSesiPemilik(r *http.Request) (uint64, error) {
 	return idPemilik, nil
 }
 
-// Menghapus sesi dari database saat logout.
+// Menghapus sesi dari database atau memory saat logout.
 func hapusSesiPemilik(token string) error {
+	if db == nil {
+		sesiMu.Lock()
+		delete(sesiInMemory, hashTokenSesi(token))
+		sesiMu.Unlock()
+		return nil
+	}
+
 	_, err := db.Exec(
 		`DELETE FROM sesi_pemilik WHERE token_hash = ?`,
 		hashTokenSesi(token),

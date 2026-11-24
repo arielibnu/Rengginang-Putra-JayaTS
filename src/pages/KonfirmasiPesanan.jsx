@@ -181,26 +181,57 @@ export default function KonfirmasiPesanan() {
             )}
           </div>
 
-          {/* TOMBOL COKELAT: Lihat status pesanan */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          {/* TOMBOL PEMBAYARAN PPL-19 & LIHAT STATUS */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.85rem' }}>
             <button
               type="button"
-              onClick={handleLihatStatus}
+              onClick={() => navigate(`/pembayaran?nomor_pesanan=${encodeURIComponent(nomorPesanan || 'PJ-DEMO-0001')}`, {
+                state: { pesananData: pesanan }
+              })}
               style={{
                 backgroundColor: '#43281C',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '10px',
-                padding: '0.95rem 3.5rem',
+                padding: '0.95rem 2.5rem',
                 fontSize: '0.95rem',
                 fontWeight: 700,
                 cursor: 'pointer',
                 transition: 'background-color 0.2s',
                 width: '100%',
-                maxWidth: '320px'
+                maxWidth: '320px',
+                boxShadow: '0 4px 12px rgba(67, 40, 28, 0.15)'
               }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#5A3726')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#43281C')}
+            >
+              Bayar Sekarang (PPL-19)
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLihatStatus}
+              style={{
+                backgroundColor: '#FAF5EE',
+                color: '#43281C',
+                border: '1px solid #ECE4D9',
+                borderRadius: '10px',
+                padding: '0.85rem 2.5rem',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                width: '100%',
+                maxWidth: '320px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#EFEAE4';
+                e.currentTarget.style.borderColor = '#43281C';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FAF5EE';
+                e.currentTarget.style.borderColor = '#ECE4D9';
+              }}
             >
               {tampilkanDetail ? 'Sembunyikan status' : 'Lihat status pesanan'}
             </button>
