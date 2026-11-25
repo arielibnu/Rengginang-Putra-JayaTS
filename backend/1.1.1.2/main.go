@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -29,6 +30,10 @@ import (
 	pesananowner "rengginang-putra-jaya/auth/1.2.10.2"
 	tagihanmidtrans "rengginang-putra-jaya/auth/1.3.1.2"
 	sinkronisasimidtrans "rengginang-putra-jaya/auth/1.3.1.4"
+	webhookgateway "rengginang-putra-jaya/auth/1.3.2.1"
+	signatureidempotency "rengginang-putra-jaya/auth/1.3.2.2"
+	pembaruanstatus "rengginang-putra-jaya/auth/1.3.2.3"
+	kedaluwarsastok "rengginang-putra-jaya/auth/1.3.2.4"
 	notifikasipesanan "rengginang-putra-jaya/auth/1.3.3.2"
 	penjualanoffline "rengginang-putra-jaya/auth/1.3.5.3"
 	flagpemisah "rengginang-putra-jaya/auth/1.3.5.4"
@@ -734,6 +739,97 @@ func main() {
 		"/api/owner/notifikasi/trigger",
 		layananNotifikasi.HandlerTrigger,
 	)
+
+	// ==========================================
+	// WBS 1.3.2.1 s/d 1.3.2.4 - PAYMENT GATEWAY WEBHOOK, IDEMPOTENCY, STATUS & KEDALUWARSA (PPL-20)
+	// ==========================================
+
+	layananWebhook := webhookgateway.InisialisasiLayanan(db)
+	layananKeamananIdem := signatureidempotency.InisialisasiLayanan(db)
+	layananPembaruanStatus := pembaruanstatus.InisialisasiLayanan(db)
+	layananKedaluwarsaStok := kedaluwarsastok.InisialisasiLayanan(db)
+
+	// Callback orkestrator terpadu saat notifikasi webhook Midtrans diterima
+	layananWebhook.OnNotifikasi = func(notif webhookgateway.NotifikasiWebhookMidtrans) error {
+		// 1. Verifikasi Keamanan Signature Key SHA512 (WBS 1.3.2.2)
+		if notif.SignatureKey != "" {
+			hasilSig := layananKeamananIdem.VerifikasiSignatureKey(notif.OrderID, notif.StatusCode, notif.GrossAmount, notif.SignatureKey)
+			if !hasilSig.Valid {
+				log.Printf("[PPL-20] DITOLAK: Signature Key tidak valid untuk pesanan: %s", notif.OrderID)
+				return fmt.Errorf("signature key tidak valid")
+			}
+		}
+
+		// 2. Proteksi Pemrosesan Ganda / Idempotency (WBS 1.3.2.2)
+		cekIdem, err := layananKeamananIdem.PeriksaDanKunciIdempotency(notif.OrderID, notif.TransactionID, notif.TransactionStatus)
+		if err != nil {
+			log.Printf("[PPL-20] Peringatan cek idempotency: %v", err)
+		}
+		if cekIdem != nil && cekIdem.AdalahDuplikat && !cekIdem.BolehDiproses {
+			log.Printf("[PPL-20] IDEMPOTENT: Notifikasi pesanan %s status %s sudah diproses sebelumnya. Pemrosesan duplikat dicegah.", notif.OrderID, notif.TransactionStatus)
+			return nil
+		}
+
+		// 3. Pembaruan Otomatis Status Transaksi (WBS 1.3.2.3)
+		reqStatus := pembaruanstatus.PembaruanStatusRequest{
+			NomorPesanan:      notif.OrderID,
+			TransactionID:     notif.TransactionID,
+			TransactionStatus: notif.TransactionStatus,
+			FraudStatus:       notif.FraudStatus,
+			PaymentType:       notif.PaymentType,
+			SettlementTime:    notif.SettlementTime,
+		}
+		hasilStatus, err := layananPembaruanStatus.PerbaruiStatusOtomatis(reqStatus, "webhook_gateway")
+		if err != nil {
+			log.Printf("[PPL-20] Peringatan perbarui status: %v", err)
+		} else {
+			log.Printf("[PPL-20] SUKSES: Status pesanan %s berubah menjadi '%s' (%s)", notif.OrderID, hasilStatus.StatusPesanan, hasilStatus.LabelStatus)
+		}
+
+		// 4. Penanganan Notifikasi Kedaluwarsa & Pemutusan Reservasi Stok (WBS 1.3.2.4)
+		if notif.TransactionStatus == "expire" || notif.TransactionStatus == "cancel" {
+			hasilLepas, errLepas := layananKedaluwarsaStok.PutusReservasiStokKedaluwarsa(notif.OrderID, "Notifikasi expire gateway sandbox PPL-20")
+			if errLepas != nil {
+				log.Printf("[PPL-20] Peringatan pemutusan reservasi stok: %v", errLepas)
+			} else {
+				log.Printf("[PPL-20] SUKSES: Reservasi stok pesanan %s diputus (%d bungkus dikembalikan ke inventaris)", notif.OrderID, hasilLepas.TotalKuantitasStok)
+			}
+		}
+
+		// 5. Kunci Idempotency selesai diproses (WBS 1.3.2.2)
+		layananKeamananIdem.TandaiSelesaiIdempotency(notif.OrderID, notif.TransactionStatus)
+
+		// 6. Sinkronkan dengan notifikasi owner jika status settlement / dibayar
+		if notif.TransactionStatus == "settlement" || notif.TransactionStatus == "capture" {
+			_, _ = layananNotifikasi.CatatPemberitahuan(notifikasipesanan.PermintaanTriggerNotifikasi{
+				NomorPesanan:      notif.OrderID,
+				NomorInvoice:      "INV-" + notif.OrderID,
+				TipePemberitahuan: "pesanan_terbayar",
+				Judul:             "Pembayaran Berhasil Diterima",
+				Pesan:             "Pesanan " + notif.OrderID + " telah dibayar lunas melalui payment gateway.",
+				MetodePenerimaan:  "Kirim Kurir",
+				TotalTransaksi:    56000,
+			})
+		}
+
+		return nil
+	}
+
+	// Endpoint WBS 1.3.2.1 (Webhook Receiver & Audit Log)
+	http.HandleFunc("/api/pembayaran/webhook/v2", layananWebhook.HandlerWebhook)
+	http.HandleFunc("/api/pembayaran/webhook/riwayat", layananWebhook.HandlerRiwayatLog)
+
+	// Endpoint WBS 1.3.2.2 (Signature Verification & Idempotency Check)
+	http.HandleFunc("/api/pembayaran/verifikasi-keamanan", layananKeamananIdem.HandlerVerifikasiKeamanan)
+	http.HandleFunc("/api/pembayaran/idempotency/riwayat", layananKeamananIdem.HandlerRiwayatIdempotency)
+
+	// Endpoint WBS 1.3.2.3 (Auto Update Status & Realtime Status Query)
+	http.HandleFunc("/api/pembayaran/perbarui-status", layananPembaruanStatus.HandlerPerbaruiStatus)
+	http.HandleFunc("/api/pembayaran/status-pesanan", layananPembaruanStatus.HandlerStatusPesanan)
+
+	// Endpoint WBS 1.3.2.4 (Stock Reservation Release on Expiry)
+	http.HandleFunc("/api/pembayaran/kedaluwarsa/putus-reservasi", layananKedaluwarsaStok.HandlerPutusReservasi)
+	http.HandleFunc("/api/pembayaran/kedaluwarsa/riwayat-pemutusan", layananKedaluwarsaStok.HandlerRiwayatPemutusan)
 
 	// ==========================================
 	// WBS 1.3.5.3 & 1.3.5.4 - PENJUALAN OFFLINE & FLAG PEMISAH (PPL-24)
