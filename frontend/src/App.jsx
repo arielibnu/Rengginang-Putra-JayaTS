@@ -35,8 +35,9 @@ import UbahStatusPesanan from './pages/UbahStatusPesanan';
 // PPL-24: Penjualan Offline (Kasir Toko)
 import PenjualanOffline from './pages/PenjualanOffline';
 
-// PPL-26: Laporan Stok Akhir Bulanan
+// PPL-26 & PPL-28: Laporan Owner
 import LaporanStokAkhir from './pages/LaporanStokAkhir';
+import LaporanPengeluaran from './pages/LaporanPengeluaran';
 
 // PPL-01: Login Owner dan Dashboard
 import LoginOwner from './pages/LoginOwner';
@@ -266,6 +267,20 @@ function AppContent() {
         <Route
           path="/owner/laporan/stok-akhir"
           element={<LaporanStokAkhir />}
+        />
+
+        {/* PPL-28: Laporan Pengeluaran Usaha Bulanan Owner */}
+        <Route
+          path="/admin/laporan/pengeluaran"
+          element={<LaporanPengeluaran />}
+        />
+        <Route
+          path="/admin/laporan-pengeluaran"
+          element={<LaporanPengeluaran />}
+        />
+        <Route
+          path="/owner/laporan/pengeluaran"
+          element={<LaporanPengeluaran />}
         />
       </Routes>
     );

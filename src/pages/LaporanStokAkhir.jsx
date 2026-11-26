@@ -256,6 +256,49 @@ export default function LaporanStokAkhir() {
           Dashboard Owner / Laporan Stok Akhir
         </div>
 
+        {/* Tab Navigasi Antar Laporan (Laporan Stok & Laporan Pengeluaran) */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            marginBottom: '1.5rem',
+            borderBottom: '1px solid #EFE8DF',
+            paddingBottom: '0.5rem'
+          }}
+        >
+          <button
+            type="button"
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              color: '#43281C',
+              cursor: 'default',
+              borderBottom: '2px solid #43281C'
+            }}
+          >
+            Laporan Stok Akhir
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/admin/laporan/pengeluaran')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: '#7A6E65',
+              cursor: 'pointer',
+              borderBottom: '2px solid transparent'
+            }}
+          >
+            Laporan Pengeluaran
+          </button>
+        </div>
+
         {/* Judul & Subtitle Sesuai Figma */}
         <div style={{ marginBottom: '2rem' }}>
           <h1 className="admin-page-title">Laporan Stok Akhir</h1>
@@ -270,91 +313,103 @@ export default function LaporanStokAkhir() {
           style={{
             display: 'flex',
             alignItems: 'flex-end',
+            justifyContent: 'space-between',
             gap: '1.25rem',
             marginBottom: '2.5rem',
             flexWrap: 'wrap'
           }}
         >
-          {/* Filter Bulan */}
-          <div style={{ flex: '1 1 200px', maxWidth: '280px' }}>
-            <label
-              htmlFor="filter-bulan"
-              style={{
-                display: 'block',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                color: '#2D231E',
-                marginBottom: '0.5rem'
-              }}
-            >
-              Bulan
-            </label>
-            <select
-              id="filter-bulan"
-              value={bulanTerpilih}
-              onChange={(e) => setBulanTerpilih(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.8rem 1rem',
-                borderRadius: '10px',
-                border: '1px solid #7A6E65',
-                backgroundColor: '#FFFFFF',
-                color: '#2D231E',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              {DAFTAR_BULAN.map((bln) => (
-                <option key={bln} value={bln}>
-                  {bln}
-                </option>
-              ))}
-            </select>
+          {/* Kelompok Input Filter (Kiri) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              gap: '1.25rem',
+              flexWrap: 'wrap',
+              flex: '1 1 auto'
+            }}
+          >
+            {/* Filter Bulan */}
+            <div style={{ flex: '1 1 200px', maxWidth: '280px' }}>
+              <label
+                htmlFor="filter-bulan"
+                style={{
+                  display: 'block',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  color: '#2D231E',
+                  marginBottom: '0.5rem'
+                }}
+              >
+                Bulan
+              </label>
+              <select
+                id="filter-bulan"
+                value={bulanTerpilih}
+                onChange={(e) => setBulanTerpilih(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.8rem 1rem',
+                  borderRadius: '10px',
+                  border: '1px solid #7A6E65',
+                  backgroundColor: '#FFFFFF',
+                  color: '#2D231E',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                {DAFTAR_BULAN.map((bln) => (
+                  <option key={bln} value={bln}>
+                    {bln}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter Tahun */}
+            <div style={{ flex: '1 1 200px', maxWidth: '280px' }}>
+              <label
+                htmlFor="filter-tahun"
+                style={{
+                  display: 'block',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  color: '#2D231E',
+                  marginBottom: '0.5rem'
+                }}
+              >
+                Tahun
+              </label>
+              <input
+                id="filter-tahun"
+                type="text"
+                value={tahunTerpilih}
+                onChange={(e) => setTahunTerpilih(e.target.value)}
+                placeholder="Contoh: 2026"
+                style={{
+                  width: '100%',
+                  padding: '0.8rem 1rem',
+                  borderRadius: '10px',
+                  border: '1px solid #7A6E65',
+                  backgroundColor: '#FFFFFF',
+                  color: '#2D231E',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  outline: 'none'
+                }}
+              />
+            </div>
           </div>
 
-          {/* Filter Tahun */}
-          <div style={{ flex: '1 1 200px', maxWidth: '280px' }}>
-            <label
-              htmlFor="filter-tahun"
-              style={{
-                display: 'block',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                color: '#2D231E',
-                marginBottom: '0.5rem'
-              }}
-            >
-              Tahun
-            </label>
-            <input
-              id="filter-tahun"
-              type="text"
-              value={tahunTerpilih}
-              onChange={(e) => setTahunTerpilih(e.target.value)}
-              placeholder="Contoh: 2026"
-              style={{
-                width: '100%',
-                padding: '0.8rem 1rem',
-                borderRadius: '10px',
-                border: '1px solid #7A6E65',
-                backgroundColor: '#FFFFFF',
-                color: '#2D231E',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          {/* Tombol Terapkan */}
-          <div>
+          {/* Tombol Terapkan (Posisi Kanan Sesuai Desain Figma) */}
+          <div style={{ marginLeft: 'auto' }}>
             <button
               type="submit"
               disabled={isLoading}
               style={{
-                padding: '0.8rem 2.25rem',
+                padding: '0.8rem 2.5rem',
                 borderRadius: '10px',
                 border: '1px solid #43281C',
                 backgroundColor: '#FFFFFF',

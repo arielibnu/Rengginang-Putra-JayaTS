@@ -40,6 +40,7 @@ import (
 	penjualanoffline "rengginang-putra-jaya/auth/1.3.5.3"
 	flagpemisah "rengginang-putra-jaya/auth/1.3.5.4"
 	laporanbulanan "rengginang-putra-jaya/auth/1.4.2.1"
+	laporanpengeluaran "rengginang-putra-jaya/auth/1.4.4.1"
 )
 
 func main() {
@@ -893,6 +894,18 @@ func main() {
 	http.HandleFunc(
 		"/api/admin/laporan/stok-akhir",
 		layananLaporanStok.HandlerLaporanStokAkhir,
+	)
+
+	// ==========================================
+	// WBS 1.4.4.1 - LAPORAN REKAP PENGELUARAN USAHA (PPL-28)
+	// ==========================================
+
+	layananLaporanPengeluaran := laporanpengeluaran.InisialisasiLayanan(db)
+
+	// GET /api/admin/laporan/pengeluaran (Pengelompokan biaya pengeluaran WBS 1.4.4.1)
+	http.HandleFunc(
+		"/api/admin/laporan/pengeluaran",
+		layananLaporanPengeluaran.HandlerLaporanPengeluaran,
 	)
 
 	// ==========================================
