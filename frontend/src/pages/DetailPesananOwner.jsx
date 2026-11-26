@@ -442,19 +442,42 @@ export default function DetailPesananOwner() {
                 </div>
               </div>
 
-              {/* Tombol Ubah Status Sesuai Desain Figma */}
-              <button
-                type="button"
-                className="btn-ubah-status"
-                onClick={() => setIsModalOpen(true)}
-              >
-                Ubah Status
-              </button>
+              {/* Tombol Aksi: Invoice Digital & Ubah Status */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <Link
+                  to={`/invoice/${pesanan.nomor_pesanan}`}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    color: '#43281C',
+                    border: '1px solid #D8C7B8',
+                    borderRadius: '8px',
+                    padding: '0.8rem 1.25rem',
+                    fontSize: '0.925rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <FileText size={16} />
+                  <span>Invoice Digital</span>
+                </Link>
+
+                <button
+                  type="button"
+                  className="btn-ubah-status"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Ubah Status
+                </button>
+              </div>
             </div>
           </>
         )}
 
-        {/* Modal Ubah Status Pemrosesan */}
+        {/* Modal Ubah Status Pemrosesan Sesuai Figma Frame PPL23_02_Modal_Ubah_Status__OVERLAY */}
         {isModalOpen && (
           <div
             style={{
@@ -463,7 +486,7 @@ export default function DetailPesananOwner() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              backgroundColor: 'rgba(0, 0, 0, 0.45)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -475,44 +498,111 @@ export default function DetailPesananOwner() {
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '16px',
-                padding: '2rem',
-                maxWidth: '440px',
+                padding: '2.25rem 2rem',
+                maxWidth: '520px',
                 width: '100%',
-                boxShadow: '0 8px 30px rgba(0,0,0,0.12)'
+                boxShadow: '0 12px 36px rgba(0,0,0,0.18)'
               }}
             >
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#43281C', marginBottom: '0.5rem' }}>
-                Ubah Status Pemrosesan
-              </h3>
-              <p style={{ fontSize: '0.875rem', color: '#8E7D73', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                Pilih status pemrosesan pesanan. Status pembayaran dan pemrosesan dipisahkan secara independen.
-              </p>
+              {/* Header Modal */}
+              <h2
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 800,
+                  color: '#2D231E',
+                  margin: '0 0 1rem 0'
+                }}
+              >
+                Pesanan: {pesanan.nomor_pesanan}
+              </h2>
 
+              {/* Pill Badge Status Pembayaran (Terpisah dari Status Pemrosesan Sesuai Figma) */}
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#43281C', marginBottom: '0.5rem' }}>
-                  Status Pemrosesan
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    backgroundColor: statusPembayaran.toLowerCase().includes('dibayar') ? '#E8F5E9' : '#FFF3E0',
+                    color: statusPembayaran.toLowerCase().includes('dibayar') ? '#2E7D32' : '#E65100',
+                    padding: '0.4rem 1.15rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700
+                  }}
+                >
+                  Pembayaran: {statusPembayaran}
+                </span>
+              </div>
+
+              {/* Form Input Status Pemrosesan Baru */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    color: '#2D231E',
+                    marginBottom: '0.5rem'
+                  }}
+                >
+                  Status pemrosesan baru
                 </label>
                 <select
                   value={statusPemrosesan}
                   onChange={(e) => setStatusPemrosesan(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '0.75rem 1rem',
+                    padding: '0.8rem 1rem',
                     borderRadius: '8px',
                     border: '1px solid #D8C7B8',
                     fontSize: '0.95rem',
-                    color: '#43281C',
+                    color: '#2D231E',
+                    fontWeight: 600,
                     outline: 'none',
-                    backgroundColor: '#FFFFFF'
+                    backgroundColor: '#FFFFFF',
+                    cursor: 'pointer'
                   }}
                 >
-                  <option value="Menunggu Diproses">Menunggu Diproses</option>
-                  <option value="Diproses">Diproses</option>
+                  <option value="Diproses">Diproses &rarr; Dikirim</option>
+                  <option value="Menunggu Diproses">Menunggu Diproses &rarr; Diproses</option>
+                  <option value="Dikirim">Dikirim &rarr; Selesai</option>
                   <option value="Selesai">Selesai</option>
-                  <option value="Batal">Batal</option>
+                  <option value="Batal">Batal (Kembalikan Reservasi Stok)</option>
                 </select>
               </div>
 
+              {/* Kotak Peringatan Sesuai Figma */}
+              <div
+                style={{
+                  backgroundColor: '#FFF6EB',
+                  border: '1px solid #FCDDC4',
+                  borderRadius: '10px',
+                  padding: '1rem 1.25rem',
+                  marginBottom: '1.75rem'
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    color: '#8D4004',
+                    marginBottom: '0.25rem'
+                  }}
+                >
+                  Pembatalan tidak otomatis berarti refund berhasil.
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.825rem',
+                    color: '#7A6E65',
+                    lineHeight: 1.4
+                  }}
+                >
+                  Stok reservasi tetap dikendalikan backend.
+                </div>
+              </div>
+
+              {/* Tombol Aksi */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                 <button
                   type="button"
@@ -539,7 +629,8 @@ export default function DetailPesananOwner() {
                     backgroundColor: '#4A2C17',
                     color: '#FFFFFF',
                     fontWeight: 700,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(74, 44, 23, 0.15)'
                   }}
                 >
                   Simpan Perubahan

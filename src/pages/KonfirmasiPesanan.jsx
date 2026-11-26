@@ -235,6 +235,34 @@ export default function KonfirmasiPesanan() {
             >
               {tampilkanDetail ? 'Sembunyikan status' : 'Lihat status pesanan'}
             </button>
+
+            <button
+              type="button"
+              onClick={() => navigate(`/invoice/${encodeURIComponent(nomorPesanan || 'PJ-DEMO-0001')}`)}
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: '#43281C',
+                border: '1px solid #D8C7B8',
+                borderRadius: '10px',
+                padding: '0.85rem 2.5rem',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                width: '100%',
+                maxWidth: '320px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#FAF8F5';
+                e.currentTarget.style.borderColor = '#43281C';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+                e.currentTarget.style.borderColor = '#D8C7B8';
+              }}
+            >
+              Lihat Invoice Digital
+            </button>
           </div>
 
           {/* ==================================================================

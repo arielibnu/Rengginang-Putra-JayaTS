@@ -35,6 +35,8 @@ import (
 	pembaruanstatus "rengginang-putra-jaya/auth/1.3.2.3"
 	kedaluwarsastok "rengginang-putra-jaya/auth/1.3.2.4"
 	notifikasipesanan "rengginang-putra-jaya/auth/1.3.3.2"
+	statemachine "rengginang-putra-jaya/auth/1.3.4.2"
+	pengembalianstok "rengginang-putra-jaya/auth/1.3.4.4"
 	penjualanoffline "rengginang-putra-jaya/auth/1.3.5.3"
 	flagpemisah "rengginang-putra-jaya/auth/1.3.5.4"
 )
@@ -673,10 +675,28 @@ func main() {
 		layananPesananOwner.HandlerDetailPesanan,
 	)
 
-	// PUT / POST /api/admin/pesanan/status (Pembaruan status pemrosesan pesanan)
+	// ==========================================
+	// WBS 1.3.4.2 & 1.3.4.4 - STATE MACHINE PEMROSESAN & PENGEMBALIAN STOK (PPL-23)
+	// ==========================================
+	layananPengembalianStok := pengembalianstok.InisialisasiLayanan(db)
+	layananStateMachine := statemachine.InisialisasiLayanan(db, layananPengembalianStok)
+
+	// PUT / POST /api/admin/pesanan/status (Pembaruan status pemrosesan dengan State Machine formal & terpisah dari pembayaran)
 	http.HandleFunc(
 		"/api/admin/pesanan/status",
-		layananPesananOwner.HandlerUpdateStatusPesanan,
+		layananStateMachine.HandlerUbahStatus,
+	)
+
+	// GET /api/admin/pesanan/transisi-status (Pilihan transisi status yang diizinkan untuk formulir frontend)
+	http.HandleFunc(
+		"/api/admin/pesanan/transisi-status",
+		layananStateMachine.HandlerOpsiTransisi,
+	)
+
+	// POST /api/admin/pesanan/kembalikan-stok (Endpoint pengembalian stok pembatalan WBS 1.3.4.4)
+	http.HandleFunc(
+		"/api/admin/pesanan/kembalikan-stok",
+		layananPengembalianStok.HandlerPengembalianStok,
 	)
 
 	// ==========================================
