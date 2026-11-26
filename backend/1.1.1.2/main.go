@@ -39,6 +39,7 @@ import (
 	pengembalianstok "rengginang-putra-jaya/auth/1.3.4.4"
 	penjualanoffline "rengginang-putra-jaya/auth/1.3.5.3"
 	flagpemisah "rengginang-putra-jaya/auth/1.3.5.4"
+	laporanbulanan "rengginang-putra-jaya/auth/1.4.2.1"
 )
 
 func main() {
@@ -880,6 +881,18 @@ func main() {
 	http.HandleFunc(
 		"/api/admin/transaksi/validasi-flag",
 		layananPemisahFlag.HandlerValidasiFlag,
+	)
+
+	// ==========================================
+	// WBS 1.4.2.1 - LAPORAN REKAP STOK AKHIR (PPL-26)
+	// ==========================================
+
+	layananLaporanStok := laporanbulanan.InisialisasiLayanan(db)
+
+	// GET /api/admin/laporan/stok-akhir (Perhitungan sisa stok akhir periode WBS 1.4.2.1)
+	http.HandleFunc(
+		"/api/admin/laporan/stok-akhir",
+		layananLaporanStok.HandlerLaporanStokAkhir,
 	)
 
 	// ==========================================

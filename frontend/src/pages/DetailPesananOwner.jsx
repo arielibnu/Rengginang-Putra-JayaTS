@@ -309,8 +309,7 @@ export default function DetailPesananOwner() {
             <li>
               <div
                 className="sidebar-item"
-                onClick={() => navigate('/admin/dashboard')}
-                style={{ opacity: 0.7 }}
+                onClick={() => navigate('/admin/laporan')}
               >
                 <FileText size={16} />
                 <span>Laporan</span>

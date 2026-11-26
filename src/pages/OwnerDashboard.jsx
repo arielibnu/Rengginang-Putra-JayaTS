@@ -466,7 +466,7 @@ export default function OwnerDashboard() {
             <li>
               <div
                 className="sidebar-item"
-                onClick={() => navigate('/admin/pesanan')}
+                onClick={() => navigate('/admin/laporan')}
               >
                 <FileText size={16} />
                 <span>Laporan</span>
