@@ -28,6 +28,10 @@ import ModalBiaya from './pages/ModalBiaya';
 import DaftarPesananOwner from './pages/DaftarPesananOwner';
 import DetailPesananOwner from './pages/DetailPesananOwner';
 
+// PPL-23: Invoice Digital dan Ubah Status Pesanan
+import InvoiceDigital from './pages/InvoiceDigital';
+import UbahStatusPesanan from './pages/UbahStatusPesanan';
+
 // PPL-24: Penjualan Offline (Kasir Toko)
 import PenjualanOffline from './pages/PenjualanOffline';
 
@@ -207,6 +211,24 @@ function AppContent() {
           element={<DetailPesananOwner />}
         />
 
+        {/* PPL-23: Ubah Status Pemrosesan Owner */}
+        <Route
+          path="/admin/pesanan/ubah-status/:id"
+          element={<UbahStatusPesanan />}
+        />
+        <Route
+          path="/admin/pesanan/ubah-status"
+          element={<UbahStatusPesanan />}
+        />
+        <Route
+          path="/owner/pesanan/ubah-status/:id"
+          element={<UbahStatusPesanan />}
+        />
+        <Route
+          path="/owner/pesanan/ubah-status"
+          element={<UbahStatusPesanan />}
+        />
+
         {/* PPL-24: Penjualan Offline (Kasir Toko) */}
         <Route
           path="/admin/penjualan-offline"
@@ -307,6 +329,20 @@ function AppContent() {
         <Route
           path="/checkout/pembayaran"
           element={<Pembayaran />}
+        />
+
+        {/* PPL-23: Invoice Digital */}
+        <Route
+          path="/invoice"
+          element={<InvoiceDigital />}
+        />
+        <Route
+          path="/invoice/:id"
+          element={<InvoiceDigital />}
+        />
+        <Route
+          path="/pesanan/invoice/:id"
+          element={<InvoiceDigital />}
         />
 
         {/* Login pelanggan PPL-02 */}

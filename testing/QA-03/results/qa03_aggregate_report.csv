@@ -1,0 +1,15 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1795537453267,2713,TC-01_Pembuatan Tagihan QRIS Sandbox (PPL-19),200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/pembayaran/buat-tagihan,2713,0,2
+1795537453267,2225,TC-02_Pembuatan Tagihan Virtual Account Sandbox (PPL-19),200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/pembayaran/buat-tagihan,2225,0,2
+1795537453267,2302,TC-03_Simulasi Pembayaran Berhasil (Settlement),200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/pembayaran/simulasi-bayar,2302,0,2
+1795537453267,2048,TC-04_Webhook Gateway: Notifikasi Pembayaran Sukses (Settlement),200,OK,QA03-Thread 1-1,text,true,,84,128,1,1,http://localhost:8080/api/pembayaran/webhook,2048,0,2
+1795537453267,2033,TC-05_Idempotency Webhook: Pengiriman Webhook Berulang (Duplicate Event),200,OK,QA03-Thread 1-1,text,true,,84,128,1,1,http://localhost:8080/api/pembayaran/webhook,2033,0,2
+1795537453267,2054,TC-06_Webhook Gateway: Pembayaran Kedaluwarsa (Expire),200,OK,QA03-Thread 1-1,text,true,,84,128,1,1,http://localhost:8080/api/pembayaran/webhook,2054,0,2
+1795537453267,2041,TC-07_Webhook Gateway: Pembayaran Ditolak/Gagal (Deny),200,OK,QA03-Thread 1-1,text,true,,84,128,1,1,http://localhost:8080/api/pembayaran/webhook,2041,0,2
+1795537453267,2175,TC-08_Verifikasi Sinkronisasi Status Pesanan Gateway,200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/pembayaran/status?nomor_pesanan=PJ-QA03-0001,2175,0,2
+1795537453267,2032,TC-09_Notifikasi Pesanan Baru Masuk Realtime (PPL-22),200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/owner/notifikasi/pesanan-baru,2032,0,2
+1795537453267,2082,TC-10_Pencatatan Penjualan Offline Kasir Toko (PPL-24),201,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/admin/penjualan-offline,2082,0,2
+1795537453267,2046,TC-11_Validasi Pembelian Offline Kuantitas 0 (Negative Test),400,OK,QA03-Thread 1-1,text,true,,73,128,1,1,http://localhost:8080/api/admin/penjualan-offline,2046,0,2
+1795537453267,2073,TC-12_Verifikasi Akurasi Stok Fisik Pasca Transaksi Kasir,200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/katalog/cek-kuota?id_varian=1&jumlah=1,2073,0,2
+1795537453267,2072,TC-13_Audit Flag Pemisah Transaksi Nyata vs Sandbox (WBS 1.3.5.4),200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/admin/transaksi/audit-flag,2072,0,2
+1795537453267,2052,TC-14_Daftar Riwayat Penjualan Offline Kasir POS,200,OK,QA03-Thread 1-1,text,true,,300,128,1,1,http://localhost:8080/api/admin/penjualan-offline,2052,0,2
