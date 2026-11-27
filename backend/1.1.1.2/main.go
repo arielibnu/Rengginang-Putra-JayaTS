@@ -41,6 +41,8 @@ import (
 	flagpemisah "rengginang-putra-jaya/auth/1.3.5.4"
 	laporanbulanan "rengginang-putra-jaya/auth/1.4.2.1"
 	laporanpengeluaran "rengginang-putra-jaya/auth/1.4.4.1"
+	laporanpenjualan "rengginang-putra-jaya/auth/1.4.1.1"
+	pemisahpenjualan "rengginang-putra-jaya/auth/1.4.1.3"
 )
 
 func main() {
@@ -906,6 +908,30 @@ func main() {
 	http.HandleFunc(
 		"/api/admin/laporan/pengeluaran",
 		layananLaporanPengeluaran.HandlerLaporanPengeluaran,
+	)
+
+	// ==========================================
+	// WBS 1.4.1.1 & 1.4.1.3 - LAPORAN REKAP PENJUALAN (PPL-25)
+	// ==========================================
+
+	layananLaporanPenjualan := laporanpenjualan.InisialisasiLayanan(db)
+
+	// GET /api/admin/laporan/penjualan (Rekap omzet riil, pemisahan sandbox & pesanan batal)
+	http.HandleFunc(
+		"/api/admin/laporan/penjualan",
+		layananLaporanPenjualan.HandlerLaporanPenjualan,
+	)
+
+	// ==========================================
+	// WBS 1.4.1.3 - AUDIT PEMISAHAN TRANSAKSI RIIL VS SANDBOX (PPL-25)
+	// ==========================================
+
+	layananPemisahPenjualan := pemisahpenjualan.InisialisasiLayanan(db)
+
+	// GET /api/admin/laporan/penjualan/audit-pemisahan (WBS 1.4.1.3)
+	http.HandleFunc(
+		"/api/admin/laporan/penjualan/audit-pemisahan",
+		layananPemisahPenjualan.HandlerPemisahanTransaksi,
 	)
 
 	// ==========================================

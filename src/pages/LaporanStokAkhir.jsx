@@ -256,16 +256,33 @@ export default function LaporanStokAkhir() {
           Dashboard Owner / Laporan Stok Akhir
         </div>
 
-        {/* Tab Navigasi Antar Laporan (Laporan Stok & Laporan Pengeluaran) */}
+        {/* Tab Navigasi Antar Laporan (Laporan Penjualan, Laporan Stok, Laporan Pengeluaran) */}
         <div
           style={{
             display: 'flex',
             gap: '1rem',
             marginBottom: '1.5rem',
             borderBottom: '1px solid #EFE8DF',
-            paddingBottom: '0.5rem'
+            paddingBottom: '0.5rem',
+            flexWrap: 'wrap'
           }}
         >
+          <button
+            type="button"
+            onClick={() => navigate('/admin/laporan/penjualan')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: '#7A6E65',
+              cursor: 'pointer',
+              borderBottom: '2px solid transparent'
+            }}
+          >
+            Laporan Penjualan
+          </button>
           <button
             type="button"
             style={{
