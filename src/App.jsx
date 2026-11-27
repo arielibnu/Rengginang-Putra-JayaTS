@@ -35,7 +35,8 @@ import UbahStatusPesanan from './pages/UbahStatusPesanan';
 // PPL-24: Penjualan Offline (Kasir Toko)
 import PenjualanOffline from './pages/PenjualanOffline';
 
-// PPL-26 & PPL-28: Laporan Owner
+// PPL-25, PPL-26 & PPL-28: Laporan Owner
+import LaporanPenjualan from './pages/LaporanPenjualan';
 import LaporanStokAkhir from './pages/LaporanStokAkhir';
 import LaporanPengeluaran from './pages/LaporanPengeluaran';
 
@@ -247,9 +248,31 @@ function AppContent() {
           element={<PenjualanOffline />}
         />
 
-        {/* PPL-26: Laporan Stok Akhir Bulanan Owner */}
+        {/* PPL-25: Laporan Penjualan Bulanan Owner (Default Menu Laporan) */}
         <Route
           path="/admin/laporan"
+          element={<LaporanPenjualan />}
+        />
+        <Route
+          path="/admin/laporan/penjualan"
+          element={<LaporanPenjualan />}
+        />
+        <Route
+          path="/admin/laporan-penjualan"
+          element={<LaporanPenjualan />}
+        />
+        <Route
+          path="/owner/laporan"
+          element={<LaporanPenjualan />}
+        />
+        <Route
+          path="/owner/laporan/penjualan"
+          element={<LaporanPenjualan />}
+        />
+
+        {/* PPL-26: Laporan Stok Akhir Bulanan Owner */}
+        <Route
+          path="/admin/laporan/stok"
           element={<LaporanStokAkhir />}
         />
         <Route
@@ -261,7 +284,7 @@ function AppContent() {
           element={<LaporanStokAkhir />}
         />
         <Route
-          path="/owner/laporan"
+          path="/owner/laporan/stok"
           element={<LaporanStokAkhir />}
         />
         <Route
