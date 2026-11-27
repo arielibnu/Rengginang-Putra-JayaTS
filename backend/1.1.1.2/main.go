@@ -43,6 +43,7 @@ import (
 	laporanpengeluaran "rengginang-putra-jaya/auth/1.4.4.1"
 	laporanpenjualan "rengginang-putra-jaya/auth/1.4.1.1"
 	pemisahpenjualan "rengginang-putra-jaya/auth/1.4.1.3"
+	penerimaankas "rengginang-putra-jaya/auth/1.4.3.1"
 )
 
 func main() {
@@ -932,6 +933,18 @@ func main() {
 	http.HandleFunc(
 		"/api/admin/laporan/penjualan/audit-pemisahan",
 		layananPemisahPenjualan.HandlerPemisahanTransaksi,
+	)
+
+	// ==========================================
+	// WBS 1.4.3.1 - LAPORAN REKAP PENERIMAAN KAS (PPL-27)
+	// ==========================================
+
+	layananPenerimaanKas := penerimaankas.InisialisasiLayanan(db)
+
+	// GET /api/admin/laporan/penerimaan-kas (WBS 1.4.3.1)
+	http.HandleFunc(
+		"/api/admin/laporan/penerimaan-kas",
+		layananPenerimaanKas.HandlerLaporanPenerimaanKas,
 	)
 
 	// ==========================================
