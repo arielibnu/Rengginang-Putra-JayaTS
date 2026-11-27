@@ -321,6 +321,22 @@ export default function LaporanPengeluaran() {
           </button>
           <button
             type="button"
+            onClick={() => navigate('/admin/laporan/penerimaan-kas')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: '#7A6E65',
+              cursor: 'pointer',
+              borderBottom: '2px solid transparent'
+            }}
+          >
+            Laporan Penerimaan Kas
+          </button>
+          <button
+            type="button"
             style={{
               background: 'none',
               border: 'none',

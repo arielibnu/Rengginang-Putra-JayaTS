@@ -276,7 +276,7 @@ export default function LaporanPenjualan() {
           Dashboard Owner / Laporan Penjualan
         </div>
 
-        {/* Tab Navigasi Antar Laporan (Laporan Penjualan, Laporan Stok Akhir, Laporan Pengeluaran) */}
+        {/* Tab Navigasi Antar Laporan (Laporan Penjualan, Laporan Stok Akhir, Laporan Penerimaan Kas, Laporan Pengeluaran) */}
         <div
           style={{
             display: 'flex',
@@ -317,6 +317,22 @@ export default function LaporanPenjualan() {
             }}
           >
             Laporan Stok Akhir
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/admin/laporan/penerimaan-kas')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: '#7A6E65',
+              cursor: 'pointer',
+              borderBottom: '2px solid transparent'
+            }}
+          >
+            Laporan Penerimaan Kas
           </button>
           <button
             type="button"
