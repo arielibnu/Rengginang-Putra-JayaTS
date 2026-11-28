@@ -350,6 +350,22 @@ export default function LaporanPenerimaanKas() {
           >
             Laporan Pengeluaran
           </button>
+          <button
+            type="button"
+            onClick={() => navigate('/admin/laporan/estimasi-keuntungan')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: '#7A6E65',
+              cursor: 'pointer',
+              borderBottom: '2px solid transparent'
+            }}
+          >
+            Estimasi Keuntungan
+          </button>
         </div>
 
         {/* Judul & Subtitle Sesuai Figma PPL27_01_Laporan_Penerimaan_Kas__TAB */}
