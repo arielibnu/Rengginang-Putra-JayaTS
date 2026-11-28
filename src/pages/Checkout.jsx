@@ -724,14 +724,11 @@ export default function Checkout() {
                     fontSize: '1.15rem',
                     fontWeight: 700,
                     color: '#43281C',
-                    margin: '0 0 0.25rem 0'
+                    margin: '0 0 1.25rem 0'
                   }}
                 >
                   Informasi kontak
                 </h2>
-                <p style={{ fontSize: '0.85rem', color: '#8E7D73', margin: '0 0 1.25rem 0' }}>
-                  Data yang sudah diisi pada tahap PPL-13.
-                </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
@@ -970,9 +967,6 @@ export default function Checkout() {
                           boxSizing: 'border-box'
                         }}
                       />
-                      <div style={{ fontSize: '0.8rem', color: '#8E7D73', marginTop: '0.4rem' }}>
-                        Detail alamat dan validasinya merupakan cakupan PPL-15.
-                      </div>
                     </div>
                   </div>
                 )}
@@ -1819,7 +1813,7 @@ export default function Checkout() {
                 {metodePenerimaan === 'ambil_sendiri'
                   ? 'Tidak ada biaya pengiriman.'
                   : tahapCheckout === 'metode_penerimaan'
-                  ? 'Belum termasuk ongkir dari PPL-16.'
+                  ? 'Belum termasuk ongkos kirim.'
                   : ''}
               </div>
             </div>
