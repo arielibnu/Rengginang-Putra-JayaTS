@@ -44,6 +44,8 @@ import (
 	laporanpenjualan "rengginang-putra-jaya/auth/1.4.1.1"
 	pemisahpenjualan "rengginang-putra-jaya/auth/1.4.1.3"
 	penerimaankas "rengginang-putra-jaya/auth/1.4.3.1"
+	lababersih "rengginang-putra-jaya/auth/1.4.5.1"
+	auditkeuntungan "rengginang-putra-jaya/auth/1.4.5.3"
 )
 
 func main() {
@@ -945,6 +947,30 @@ func main() {
 	http.HandleFunc(
 		"/api/admin/laporan/penerimaan-kas",
 		layananPenerimaanKas.HandlerLaporanPenerimaanKas,
+	)
+
+	// ==========================================
+	// WBS 1.4.5.1 - LAPORAN ESTIMASI KEUNTUNGAN BULANAN (PPL-29)
+	// ==========================================
+
+	layananEstimasiKeuntungan := lababersih.InisialisasiLayanan(db)
+
+	// GET /api/admin/laporan/estimasi-keuntungan (WBS 1.4.5.1)
+	http.HandleFunc(
+		"/api/admin/laporan/estimasi-keuntungan",
+		layananEstimasiKeuntungan.HandlerEstimasiKeuntungan,
+	)
+
+	// ==========================================
+	// WBS 1.4.5.3 - AUDIT DISCLAIMER & ANTI-DUPLIKASI KEUNTUNGAN (PPL-29)
+	// ==========================================
+
+	layananAuditKeuntungan := auditkeuntungan.InisialisasiLayanan(db)
+
+	// GET /api/admin/laporan/estimasi-keuntungan/audit (WBS 1.4.5.3)
+	http.HandleFunc(
+		"/api/admin/laporan/estimasi-keuntungan/audit",
+		layananAuditKeuntungan.HandlerAuditKeuntungan,
 	)
 
 	// ==========================================

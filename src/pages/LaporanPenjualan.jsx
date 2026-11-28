@@ -243,7 +243,7 @@ export default function LaporanPenjualan() {
               {/* Menu Laporan Aktif Sesuai Frame Figma PPL25_01 */}
               <div
                 className="sidebar-item active"
-                onClick={() => navigate('/admin/laporan')}
+                onClick={() => navigate('/admin/laporan/penjualan')}
               >
                 <FileText size={16} />
                 <span>Laporan</span>
@@ -349,6 +349,22 @@ export default function LaporanPenjualan() {
             }}
           >
             Laporan Pengeluaran
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/admin/laporan/estimasi-keuntungan')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: '#7A6E65',
+              cursor: 'pointer',
+              borderBottom: '2px solid transparent'
+            }}
+          >
+            Estimasi Keuntungan
           </button>
         </div>
 

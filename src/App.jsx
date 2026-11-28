@@ -35,11 +35,12 @@ import UbahStatusPesanan from './pages/UbahStatusPesanan';
 // PPL-24: Penjualan Offline (Kasir Toko)
 import PenjualanOffline from './pages/PenjualanOffline';
 
-// PPL-25, PPL-26, PPL-27 & PPL-28: Laporan Owner
+// PPL-25, PPL-26, PPL-27, PPL-28 & PPL-29: Laporan Owner
 import LaporanPenjualan from './pages/LaporanPenjualan';
 import LaporanStokAkhir from './pages/LaporanStokAkhir';
 import LaporanPenerimaanKas from './pages/LaporanPenerimaanKas';
 import LaporanPengeluaran from './pages/LaporanPengeluaran';
+import LaporanEstimasiKeuntungan from './pages/LaporanEstimasiKeuntungan';
 
 // PPL-01: Login Owner dan Dashboard
 import LoginOwner from './pages/LoginOwner';
@@ -319,6 +320,36 @@ function AppContent() {
         <Route
           path="/owner/laporan/pengeluaran"
           element={<LaporanPengeluaran />}
+        />
+
+        {/* PPL-29: Laporan Estimasi Keuntungan Bulanan Owner */}
+        <Route
+          path="/admin/laporan/estimasi-keuntungan"
+          element={<LaporanEstimasiKeuntungan />}
+        />
+        <Route
+          path="/admin/laporan/keuntungan"
+          element={<LaporanEstimasiKeuntungan />}
+        />
+        <Route
+          path="/admin/laporan-estimasi-keuntungan"
+          element={<LaporanEstimasiKeuntungan />}
+        />
+        <Route
+          path="/admin/laporan-keuntungan"
+          element={<LaporanEstimasiKeuntungan />}
+        />
+        <Route
+          path="/admin/estimasi-keuntungan"
+          element={<LaporanEstimasiKeuntungan />}
+        />
+        <Route
+          path="/owner/laporan/estimasi-keuntungan"
+          element={<LaporanEstimasiKeuntungan />}
+        />
+        <Route
+          path="/owner/laporan/keuntungan"
+          element={<LaporanEstimasiKeuntungan />}
         />
       </Routes>
     );
